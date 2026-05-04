@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Пополнение Steam: моментальное по логину или выгодное ключами TF2. Skinexs." />
+  <title>Пополнение Steam — Skinexs</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&family=Montserrat:wght@400;500;600;700&family=Outfit:wght@500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+  <div class="bg-glow" aria-hidden="true"></div>
+
+  <header class="site-header">
+    <div class="container header-inner">
+      <div class="header-left">
+        <a class="logo" href="index.html">
+          <span class="logo-mark">S</span>
+          <span class="logo-text">Skinexs</span>
+        </a>
+        <nav class="nav nav-primary" aria-label="Основное меню">
+          <a href="index.html#catalog">Каталог</a>
+          <a href="support.html">Поддержка</a>
+          <a href="reviews.html">Отзывы</a>
+        </nav>
+      </div>
+      <div class="header-actions">
+        <button type="button" class="btn btn-ghost cart-toggle" id="cartBtn" aria-label="Корзина">
+          <span class="cart-icon" aria-hidden="true"></span>
+          <span class="cart-label">Корзина</span>
+          <span class="cart-count" id="cartCount">0</span>
+        </button>
+        <div class="header-auth" aria-label="Вход и личный кабинет">
+          <div class="header-auth-slot">
+            <span id="userNavSlot" class="user-nav-slot"></span>
+            <span id="adminNavSlot" class="admin-nav-slot"></span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="support-main steam-topup-main cs-scope">
+    <div class="container container-wide">
+      <nav class="breadcrumbs product-breadcrumbs" aria-label="Хлебные крошки">
+        <a href="index.html">Главная</a>
+        <span class="bc-sep" aria-hidden="true">/</span>
+        <span class="bc-current">Пополнение Steam</span>
+      </nav>
+
+      <div class="steam-topup-shell">
+        <h1 class="steam-topup-page-title">Пополняй <span class="gradient-text">Steam</span> как раньше!</h1>
+
+        <div class="steam-topup-tabs" role="tablist" aria-label="Режим пополнения">
+          <button
+            type="button"
+            class="steam-topup-tabs__btn"
+            role="tab"
+            id="tab-steam-instant"
+            aria-selected="true"
+            aria-controls="steam-topup-mode-instant"
+            tabindex="0"
+          >
+            <span class="steam-topup-tabs__icon" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M13 2L3 14h7l-1 8 10-12h-7l1-8z" /></svg></span>
+            <span class="steam-topup-tabs__label">Моментальное пополнение</span>
+          </button>
+          <div class="steam-topup-tabs__wrap">
+            <span class="steam-topup-tabs__badge" aria-hidden="true">Комиссия 0%</span>
+            <button
+              type="button"
+              class="steam-topup-tabs__btn"
+              role="tab"
+              id="tab-steam-value"
+              aria-selected="false"
+              aria-controls="steam-topup-mode-value"
+              tabindex="-1"
+            >
+              <span class="steam-topup-tabs__icon" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 2l-1 1M7.61 7.61a5.5 5.5 0 1 1 7.78 7.78 5.5 5.5 0 0 1-7.78-7.78zm0 0L15.5 7.5m0 0 3 3L22 7l-3-3m-3.5 3.5L19 4" /></svg></span>
+              <span class="steam-topup-tabs__label">Выгодное пополнение</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Режим 1: только моментальное (логин + сумма), отдельная «страница» -->
+        <div
+          id="steam-topup-mode-instant"
+          class="steam-topup-mode"
+          role="tabpanel"
+          aria-labelledby="tab-steam-instant"
+          data-steam-topup-mode="instant"
+        >
+          <div class="steam-topup-grid">
+            <div class="steam-topup-col steam-topup-col--form">
+              <div class="steam-topup-panels">
+              <section class="steam-topup-card" aria-labelledby="st-where-login">
+                <h2 class="steam-topup-card__title" id="st-where-login">Куда и сколько</h2>
+                <div class="steam-topup-field">
+                  <span class="steam-topup-field__icon" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="3.5" /><path d="M6 20v-1a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v1" /></svg></span>
+                  <input type="text" class="steam-topup-input" id="stLoginInput" placeholder="Логин аккаунта Steam" autocomplete="username" />
+                  <a class="steam-topup-field__hint" href="support.html">Где найти?</a>
+                </div>
+                <div class="steam-topup-field">
+                  <span class="steam-topup-field__icon steam-topup-field__icon--rub" aria-hidden="true">₽</span>
+                  <input type="number" class="steam-topup-input" id="stAmountRub" min="100" step="50" value="1000" inputmode="numeric" aria-label="Сумма в рублях" />
+                  <div class="steam-topup-currency" role="group" aria-label="Валюта отображения">
+                    <button type="button" class="steam-topup-currency__btn is-active" data-currency="rub">₽ RUB</button>
+                    <button type="button" class="steam-topup-currency__btn" data-currency="kzt" disabled title="Скоро">₸ KZT</button>
+                  </div>
+                </div>
+              </section>
+
+              <section class="steam-topup-card" aria-labelledby="st-pay-login">
+                <h2 class="steam-topup-card__title" id="st-pay-login">Способ оплаты</h2>
+                <div class="steam-topup-paygrid" role="radiogroup" aria-label="Способ оплаты">
+                  <button type="button" class="steam-topup-paytile is-active" role="radio" aria-checked="true" data-pay="sbp">СБП</button>
+                  <button type="button" class="steam-topup-paytile" role="radio" aria-checked="false" data-pay="card">Карта · MIR / Visa</button>
+                </div>
+                <div class="steam-topup-field steam-topup-field--full">
+                  <span class="steam-topup-field__icon steam-topup-field__icon--pct" aria-hidden="true">%</span>
+                  <input type="text" class="steam-topup-input" placeholder="Промокод" id="stPromoLogin" autocomplete="off" />
+                </div>
+                <dl class="steam-topup-summary">
+                  <div class="steam-topup-summary__row">
+                    <dt>Получите на баланс Steam</dt>
+                    <dd id="stSumReceive">1000 ₽</dd>
+                  </div>
+                  <div class="steam-topup-summary__row">
+                    <dt>Комиссия платёжной системы <span class="steam-topup-pill steam-topup-pill--warn">7%</span></dt>
+                    <dd id="stSumFee">70 ₽</dd>
+                  </div>
+                </dl>
+                <a class="btn btn-primary btn-block steam-topup-paybtn" id="stPayLogin" href="support.html">Оплатить <span id="stPayTotalLogin">1070 ₽</span></a>
+              </section>
+              </div>
+            </div>
+
+            <aside class="steam-topup-col steam-topup-col--promo" aria-label="Промо моментального пополнения">
+              <div class="steam-topup-promo steam-topup-promo--login">
+                <div class="steam-topup-promo__rings" aria-hidden="true"></div>
+                <p class="steam-topup-promo__text">7% <span class="steam-topup-promo__sub">комиссия на моментальное пополнение по логину — быстро и прозрачно</span></p>
+              </div>
+            </aside>
+          </div>
+        </div>
+
+        <!-- Режим 2: только выгодное (TF2-ключи), отдельная «страница» -->
+        <div
+          id="steam-topup-mode-value"
+          class="steam-topup-mode"
+          role="tabpanel"
+          aria-labelledby="tab-steam-value"
+          data-steam-topup-mode="value"
+          hidden
+        >
+          <div class="steam-topup-grid">
+            <div class="steam-topup-col steam-topup-col--form">
+              <div class="steam-topup-panels">
+              <section class="steam-topup-card" aria-labelledby="st-where-keys">
+                <h2 class="steam-topup-card__title" id="st-where-keys">Куда и сколько</h2>
+                <div class="steam-topup-field">
+                  <span class="steam-topup-field__icon" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.07 0l1-1a5 5 0 0 0-7.07-7.07l-1.5 1.5M14 11a5 5 0 0 0-7.07 0l-1 1a5 5 0 0 0 7.07 7.07l1.5-1.5" /></svg></span>
+                  <input type="url" class="steam-topup-input" placeholder="Трейд-ссылка Steam" id="stTradeUrl" autocomplete="url" />
+                  <a class="steam-topup-field__hint" href="support.html">Где найти?</a>
+                </div>
+                <div class="steam-topup-keys-row">
+                  <div class="steam-topup-field steam-topup-field--grow">
+                    <span class="steam-topup-field__icon" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 2l-1 1M7.61 7.61a5.5 5.5 0 1 1 7.78 7.78 5.5 5.5 0 0 1-7.78-7.78zm0 0L15.5 7.5m0 0 3 3L22 7l-3-3m-3.5 3.5L19 4" /></svg></span>
+                    <span class="steam-topup-keys-label" id="stKeysLabel">1 ключ</span>
+                  </div>
+                  <div class="steam-topup-stepper">
+                    <button type="button" class="steam-topup-stepper__btn" id="stKeyMinus" aria-label="Меньше ключей">−</button>
+                    <span class="steam-topup-stepper__val" id="stKeyCount">1</span>
+                    <button type="button" class="steam-topup-stepper__btn" id="stKeyPlus" aria-label="Больше ключей">+</button>
+                  </div>
+                  <span class="steam-topup-keys-price" id="stKeyPriceLine">~156 ₽</span>
+                </div>
+                <div class="steam-topup-callout">
+                  Мы отправим вам TF2-ключи — их можно сразу продать на площадке Steam. Подробности — в тикете поддержки.
+                  <a href="support.html">Как это работает</a>
+                </div>
+              </section>
+
+              <section class="steam-topup-card" aria-labelledby="st-pay-keys">
+                <h2 class="steam-topup-card__title" id="st-pay-keys">Способ оплаты</h2>
+                <div class="steam-topup-paygrid" role="radiogroup" aria-label="Способ оплаты">
+                  <button type="button" class="steam-topup-paytile is-active" role="radio" aria-checked="true">СБП</button>
+                  <button type="button" class="steam-topup-paytile" role="radio" aria-checked="false">Карта · MIR / Visa</button>
+                </div>
+                <div class="steam-topup-field steam-topup-field--full">
+                  <span class="steam-topup-field__icon steam-topup-field__icon--pct" aria-hidden="true">%</span>
+                  <input type="text" class="steam-topup-input" placeholder="Промокод" autocomplete="off" />
+                </div>
+                <dl class="steam-topup-summary">
+                  <div class="steam-topup-summary__row">
+                    <dt>Получите после продажи скинов</dt>
+                    <dd id="stKeysReceive">~156 ₽</dd>
+                  </div>
+                  <div class="steam-topup-summary__row">
+                    <dt>Комиссия платёжной системы <span class="steam-topup-pill steam-topup-pill--ok">0%</span></dt>
+                    <dd>0 ₽</dd>
+                  </div>
+                </dl>
+                <a class="btn btn-primary btn-block steam-topup-paybtn" href="support.html">Оплатить <span id="stPayTotalKeys">156 ₽</span></a>
+              </section>
+              </div>
+            </div>
+
+            <aside class="steam-topup-col steam-topup-col--promo" aria-label="Промо выгодного пополнения">
+              <div class="steam-topup-promo steam-topup-promo--keys">
+                <div class="steam-topup-promo__rings steam-topup-promo__rings--keys" aria-hidden="true"></div>
+                <p class="steam-topup-promo__text steam-topup-promo__text--keys">0% <span class="steam-topup-promo__sub">комиссия на пополнение ключами TF2 — выгодная схема через торговую площадку</span></p>
+              </div>
+            </aside>
+          </div>
+        </div>
+
+        <p class="steam-topup-disclaimer">
+          Оформление и оплата проходят через поддержку Skinexs. Поля в выбранном режиме — для расчёта; итоговые реквизиты и сроки согласуются в тикете.
+          Valve и Steam — товарные знаки Valve Corporation.
+        </p>
+      </div>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container footer-inner">
+      <p class="footer-brand" id="siteFooterBrand">Skinexs · эксклюзивные сеты Dota 2</p>
+      <p class="footer-disclaimer" id="siteFooterDisclaimer">
+        Dota и Dota 2 являются товарными знаками Valve Corporation. Сайт не аффилирован с Valve.
+      </p>
+    </div>
+  </footer>
+
+  <aside class="drawer" id="cartDrawer" aria-hidden="true" aria-labelledby="cartDrawerTitle">
+    <div class="drawer-backdrop" id="cartBackdrop" tabindex="-1"></div>
+    <div class="drawer-panel" role="dialog">
+      <div class="drawer-head">
+        <h2 id="cartDrawerTitle">Корзина</h2>
+        <button type="button" class="icon-btn" id="closeCart" aria-label="Закрыть">×</button>
+      </div>
+      <div class="drawer-body" id="cartItems"></div>
+      <div class="drawer-foot">
+        <p class="cart-total">Итого: <strong id="cartTotal">0 ₽</strong></p>
+        <a class="btn btn-primary btn-block cart-auth-cta" id="cartLoginCta" href="auth.html" hidden>Авторизоваться для оформления заказа</a>
+        <button type="button" class="btn btn-primary btn-block" id="checkoutOrder" hidden>Оформить заказ</button>
+        <p class="cart-checkout-note" id="cartCheckoutNote" role="status" aria-live="polite"></p>
+      </div>
+    </div>
+  </aside>
+
+  <script src="js/data.js"></script>
+  <script src="js/catalog-meta.js"></script>
+  <script src="js/catalog-meta-store.js"></script>
+  <script src="js/shared.js"></script>
+  <script src="js/server-config.js"></script>
+  <script src="js/admin-config.js"></script>
+  <script src="js/bootstrap-server.js"></script>
+  <script src="js/catalog-store.js"></script>
+  <script src="js/auth-store.js"></script>
+  <script src="js/notifications-store.js"></script>
+  <script src="js/admin-auth.js"></script>
+  <script src="js/account-store.js"></script>
+  <script src="js/site-settings.js"></script>
+  <script src="js/market-offers-store.js"></script>
+  <script src="js/taxonomy.js"></script>
+  <script src="js/app.js"></script>
+  <script src="js/inject-nav.js"></script>
+  <script src="js/notifications-ui.js"></script>
+  <script src="js/steam-topup-page.js"></script>
+  <script>
+    if (window.SkinexSiteSettings) SkinexSiteSettings.applyToPage();
+  </script>
+</body>
+</html>

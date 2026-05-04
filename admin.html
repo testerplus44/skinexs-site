@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="noindex, nofollow" />
+  <title>Админка — Skinexs</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body class="admin-body">
+  <header class="site-header admin-header">
+    <div class="container header-inner">
+      <div class="header-left">
+        <a class="logo" href="index.html">
+          <span class="logo-mark">S</span>
+          <span class="logo-text">Skinexs</span>
+        </a>
+        <nav class="nav nav-primary" aria-label="Основное меню">
+          <a href="index.html#catalog">Каталог</a>
+          <a href="support.html">Поддержка</a>
+          <a href="reviews.html">Отзывы</a>
+        </nav>
+      </div>
+      <div class="header-actions">
+        <div class="header-auth" aria-label="Вход и выход">
+          <div class="header-auth-slot">
+            <span id="userNavSlot" class="user-nav-slot"></span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="admin-main cs-scope">
+    <div class="container container-wide">
+      <section class="admin-login-block" id="loginBlock">
+        <h1 class="admin-page-title">Вход для администратора</h1>
+        <p class="admin-login-warn">
+          Доступ только по паролю. Обычные страницы не показывают раздел «Админка» в меню.
+          Пароль задаётся в <code>js/admin-config.js</code> — смените перед публикацией.
+        </p>
+        <form class="admin-login-form" id="loginForm" novalidate>
+          <label class="field">
+            <span>Email администратора</span>
+            <input type="email" name="email" required autocomplete="username" />
+          </label>
+          <label class="field">
+            <span>Пароль</span>
+            <input type="password" name="password" required autocomplete="current-password" />
+          </label>
+          <button type="submit" class="btn-cs-cart admin-login-submit">Войти</button>
+          <p class="admin-login-error" id="loginError" role="alert"></p>
+          <p class="admin-login-alt"><a href="auth.html?next=admin.html">Вход через общую страницу</a></p>
+        </form>
+      </section>
+
+      <section class="admin-panel-block" id="panelBlock" hidden>
+        <div class="admin-tabs" role="tablist" aria-label="Разделы админ-панели">
+          <button type="button" class="admin-tab is-active" id="adminTabBtnDashboard" role="tab" aria-selected="true" aria-controls="adminTabDashboard" tabindex="0">Сводка</button>
+          <button type="button" class="admin-tab" id="adminTabBtnProducts" role="tab" aria-selected="false" aria-controls="adminTabProducts" tabindex="-1">Товар</button>
+          <button type="button" class="admin-tab" id="adminTabBtnFilters" role="tab" aria-selected="false" aria-controls="adminTabFilters" tabindex="-1">Фильтры витрины</button>
+          <button type="button" class="admin-tab" id="adminTabBtnUsers" role="tab" aria-selected="false" aria-controls="adminTabUsers" tabindex="-1">Пользователи</button>
+          <button type="button" class="admin-tab" id="adminTabBtnTraders" role="tab" aria-selected="false" aria-controls="adminTabTraders" tabindex="-1">Трейдеры</button>
+          <button type="button" class="admin-tab" id="adminTabBtnOrders" role="tab" aria-selected="false" aria-controls="adminTabOrders" tabindex="-1">Заказы</button>
+          <button type="button" class="admin-tab" id="adminTabBtnMarket" role="tab" aria-selected="false" aria-controls="adminTabMarket" tabindex="-1">Рынок</button>
+          <button type="button" class="admin-tab" id="adminTabBtnSite" role="tab" aria-selected="false" aria-controls="adminTabSite" tabindex="-1">Сайт</button>
+          <button type="button" class="admin-tab" id="adminTabBtnHints" role="tab" aria-selected="false" aria-controls="adminTabHints" tabindex="-1">Подсказки</button>
+          <button type="button" class="admin-tab" id="adminTabBtnBroadcast" role="tab" aria-selected="false" aria-controls="adminTabBroadcast" tabindex="-1">Рассылки</button>
+        </div>
+
+        <div id="adminTabDashboard" class="admin-tab-panel" role="tabpanel" aria-labelledby="adminTabBtnDashboard">
+          <div class="admin-users-tab-head">
+            <h1 class="admin-page-title">Сводка</h1>
+            <p class="admin-panel-lead">
+              Показатели по данным этого браузера (localStorage). Выберите период и блоки — цифры по заказам пересчитываются; каталог и рынок ниже — снимок «сейчас».
+            </p>
+          </div>
+          <div id="adminDashBoard" class="admin-dash-board"></div>
+          <p class="admin-dash-note" id="adminDashNote" role="status"></p>
+          <button type="button" class="btn btn-outline admin-backup-btn" id="btnExportBackup">Скачать резервную копию (каталог, теги, фильтры витрины, лоты рынка, тексты сайта, подсказки)</button>
+        </div>
+
+        <div id="adminTabProducts" class="admin-tab-panel" hidden role="tabpanel" aria-labelledby="adminTabBtnProducts">
+          <div class="admin-panel-head">
+            <div>
+              <h1 class="admin-page-title">Ассортимент</h1>
+              <p class="admin-panel-lead">Добавление и удаление сетов, цены, описания, картинка и ссылка на видео (YouTube или прямой mp4/webm).</p>
+            </div>
+            <div class="admin-panel-actions">
+              <button type="button" class="btn-cs-cart" id="btnAddItem">+ Добавить сет</button>
+              <button type="button" class="btn btn-outline" id="btnResetCatalog">Сбросить к умолчанию</button>
+            </div>
+          </div>
+
+          <section class="admin-taxonomy" aria-labelledby="taxHeading">
+            <h2 id="taxHeading" class="admin-taxonomy-title">Справочники тегов</h2>
+            <p class="admin-taxonomy-lead">
+              Значения для полей «Герой» и «Тип предмета» в карточке товара и на витрине. Редактируйте списки и нажмите «Сохранить справочники».
+            </p>
+            <div class="admin-taxonomy-grid">
+              <div class="admin-taxonomy-col">
+                <h3 class="admin-taxonomy-sub">Герой</h3>
+                <ul class="admin-taxonomy-list" id="heroTaxList"></ul>
+                <div class="admin-taxonomy-add">
+                  <input type="text" id="heroTaxInput" maxlength="120" placeholder="Например, Invoker" />
+                  <button type="button" class="btn btn-outline btn-sm" id="heroTaxAdd">Добавить</button>
+                </div>
+              </div>
+              <div class="admin-taxonomy-col">
+                <h3 class="admin-taxonomy-sub">Тип предмета</h3>
+                <ul class="admin-taxonomy-list" id="itemTypeTaxList"></ul>
+                <div class="admin-taxonomy-add">
+                  <input type="text" id="itemTypeTaxInput" maxlength="120" placeholder="Например, Сет" />
+                  <button type="button" class="btn btn-outline btn-sm" id="itemTypeTaxAdd">Добавить</button>
+                </div>
+              </div>
+            </div>
+            <button type="button" class="btn-cs-cart admin-taxonomy-save" id="btnSaveTaxonomy">Сохранить справочники</button>
+            <p class="admin-taxonomy-note" id="taxonomyNote" role="status" aria-live="polite"></p>
+          </section>
+
+          <div class="admin-table-wrap">
+            <table class="admin-table" aria-label="Каталог">
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Название</th>
+                  <th>Герой</th>
+                  <th>Тип</th>
+                  <th>Редкость</th>
+                  <th>Цена</th>
+                  <th>Лоты трейдеров</th>
+                  <th>Медиа</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody id="adminTableBody"></tbody>
+            </table>
+          </div>
+          <p class="admin-save-note" id="adminGlobalNote" role="status" aria-live="polite"></p>
+        </div>
+
+        <div id="adminTabFilters" class="admin-tab-panel" hidden role="tabpanel" aria-labelledby="adminTabBtnFilters">
+          <div class="admin-panel-head">
+            <div>
+              <h1 class="admin-page-title">Фильтры боковой панели</h1>
+              <p class="admin-panel-lead">
+                Коллекции (сундуки) и категории в блоке каталога на главной. ID — латиница, цифры и дефис (как в данных товаров:
+                <code>collectionId</code>, <code>category</code>). Пункт с ID <code>all</code> нельзя удалить — это «все значения».
+                В колонке «Родитель» у <strong>коллекции</strong> и у <strong>категории</strong> можно указать другую строку <strong>верхнего уровня</strong> — на витрине появится вложенный список; фильтр по родителю покажет товары с этим ID и с любых дочерних пунктов.
+                Картинка: файл (лучше до ~300&nbsp;KB) или ссылка <code>https://</code> — на витрине слева тёмный фон плавно переходит в изображение справа.
+              </p>
+            </div>
+            <div class="admin-panel-actions">
+              <button type="button" class="btn-cs-cart" id="btnSaveSidebarMeta">Сохранить фильтры</button>
+              <button type="button" class="btn btn-outline" id="btnResetSidebarMeta">Сбросить к умолчанию</button>
+            </div>
+          </div>
+
+          <section class="admin-sidebar-meta" aria-labelledby="metaColHeading">
+            <h2 id="metaColHeading" class="admin-taxonomy-title">Collections <span class="admin-meta-hint">сундуки</span></h2>
+            <div class="admin-table-wrap">
+              <table class="admin-table admin-meta-table" aria-label="Коллекции">
+                <thead>
+                  <tr>
+                    <th>ID (slug)</th>
+                    <th>Название на сайте</th>
+                    <th>Родитель</th>
+                    <th>Картинка</th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody id="adminMetaCollectionsBody"></tbody>
+              </table>
+            </div>
+            <button type="button" class="btn btn-outline btn-sm" id="btnMetaAddCollection">+ Добавить коллекцию</button>
+          </section>
+
+          <section class="admin-sidebar-meta" aria-labelledby="metaCatHeading">
+            <h2 id="metaCatHeading" class="admin-taxonomy-title">Categories</h2>
+            <div class="admin-table-wrap">
+              <table class="admin-table admin-meta-table" aria-label="Категории">
+                <thead>
+                  <tr>
+                    <th>ID (slug)</th>
+                    <th>Название на сайте</th>
+                    <th>Родитель</th>
+                    <th>Картинка</th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody id="adminMetaCategoriesBody"></tbody>
+              </table>
+            </div>
+            <button type="button" class="btn btn-outline btn-sm" id="btnMetaAddCategory">+ Добавить категорию</button>
+          </section>
+
+          <p class="admin-taxonomy-note" id="adminMetaNote" role="status" aria-live="polite"></p>
+        </div>
+
+        <div id="adminTabOrders" class="admin-tab-panel" hidden role="tabpanel" aria-labelledby="adminTabBtnOrders">
+          <div class="admin-users-tab-head">
+            <h1 class="admin-page-title">Заказы</h1>
+            <p class="admin-panel-lead">
+              Список из локального кабинета этого браузера (те же заказы, что у клиента после оформления из корзины). У каждого заказа короткий
+              <strong>номер</strong> и полный <strong>ID</strong>. «Подробнее» — состав, покупатель, Steam, история статусов. Справочник статусов задаётся в коде
+              (<code>js/account-store.js</code>), позже можно заменить на настройки из админки.
+            </p>
+          </div>
+          <div class="admin-table-wrap">
+            <table class="admin-table" aria-label="Заказы">
+              <thead>
+                <tr>
+                  <th>№ / ID</th>
+                  <th>Дата</th>
+                  <th>Покупатель</th>
+                  <th>Сумма</th>
+                  <th>Статус</th>
+                  <th>Состав (кратко)</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody id="adminOrdersBody"></tbody>
+            </table>
+          </div>
+          <p class="admin-taxonomy-note" id="adminOrdersNote" role="status" aria-live="polite"></p>
+        </div>
+
+        <div id="adminTabMarket" class="admin-tab-panel" hidden role="tabpanel" aria-labelledby="adminTabBtnMarket">
+          <div class="admin-users-tab-head">
+            <h1 class="admin-page-title">Лоты трейдеров</h1>
+            <p class="admin-panel-lead">
+              Активные и скрытые предложения по товарам. «Скрыть с витрины» убирает лот из стакана на карточке товара (покупатели не путаются).
+              Данные хранятся локально в браузере, как и заказы.
+            </p>
+          </div>
+          <div class="admin-table-wrap">
+            <table class="admin-table" aria-label="Лоты рынка">
+              <thead>
+                <tr>
+                  <th>Товар</th>
+                  <th>ID товара</th>
+                  <th>Трейдер</th>
+                  <th>Сделок</th>
+                  <th>Рейтинг</th>
+                  <th>Цена</th>
+                  <th>Остаток</th>
+                  <th>Скрыт</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody id="adminMarketBody"></tbody>
+            </table>
+          </div>
+          <p class="admin-taxonomy-note" id="adminMarketNote" role="status" aria-live="polite"></p>
+        </div>
+
+        <div id="adminTabSite" class="admin-tab-panel" hidden role="tabpanel" aria-labelledby="adminTabBtnSite">
+          <div class="admin-users-tab-head">
+            <h1 class="admin-page-title">Тексты сайта</h1>
+            <p class="admin-panel-lead">
+              Подмена абзаца и списка в блоке «Связь» на главной, подписи футера на всех страницах. Пустые поля — оставить текст по умолчанию из вёрстки.
+            </p>
+          </div>
+          <form class="admin-site-form" id="adminSiteForm" novalidate>
+            <label class="field">
+              <span>Абзац под «Связь и заявки» (главная)</span>
+              <textarea name="contactLead" id="siteFormContactLead" rows="3" maxlength="2000"></textarea>
+            </label>
+            <label class="field">
+              <span>Список подсказок (каждая строка — пункт списка, можно HTML не использовать)</span>
+              <textarea name="contactBullets" id="siteFormContactBullets" rows="5" maxlength="4000" placeholder="Steam — …&#10;Telegram — …"></textarea>
+            </label>
+            <label class="field">
+              <span>Первая строка футера</span>
+              <input type="text" id="siteFormFooterBrand" maxlength="200" />
+            </label>
+            <label class="field">
+              <span>Дисклеймер футера</span>
+              <textarea id="siteFormFooterDisclaimer" rows="4" maxlength="4000"></textarea>
+            </label>
+            <button type="submit" class="btn-cs-cart">Сохранить тексты</button>
+            <p class="admin-taxonomy-note" id="adminSiteFormNote" role="status"></p>
+          </form>
+        </div>
+
+        <div id="adminTabHints" class="admin-tab-panel" hidden role="tabpanel" aria-labelledby="adminTabBtnHints">
+          <div class="admin-users-tab-head">
+            <h1 class="admin-page-title">Подсказки</h1>
+            <p class="admin-panel-lead">
+              Блок FAQ на странице «Поддержка»: заголовок пункта — вопрос в шапке раскрывающейся строки, текст — ответ под ним.
+              Снятая галочка «На сайте» скрывает пункт. Число порядка: меньше — выше в списке.
+            </p>
+          </div>
+          <form class="admin-hint-editor" id="adminHintEditorForm" novalidate>
+            <input type="hidden" id="hintEditorId" value="" />
+            <div class="admin-form-grid">
+              <label class="field">
+                <span>Вопрос (строка в FAQ)</span>
+                <input type="text" id="hintFieldTitle" maxlength="200" required />
+              </label>
+              <label class="field">
+                <span>Порядок</span>
+                <input type="number" id="hintFieldSort" value="0" step="1" />
+              </label>
+              <label class="field field-span2">
+                <span>Ответ (раскрывается по клику)</span>
+                <textarea id="hintFieldBody" rows="5" maxlength="8000" required placeholder="Текст под заголовком в аккордеоне…"></textarea>
+              </label>
+              <label class="field checkbox">
+                <input type="checkbox" id="hintFieldEnabled" checked />
+                <span>Показывать на сайте</span>
+              </label>
+            </div>
+            <div class="admin-hint-editor-actions">
+              <button type="submit" class="btn-cs-cart">Сохранить</button>
+              <button type="button" class="btn btn-outline" id="hintEditorReset">Очистить (новая)</button>
+            </div>
+            <p class="admin-taxonomy-note" id="adminHintEditorNote" role="status" aria-live="polite"></p>
+          </form>
+          <div class="admin-table-wrap">
+            <table class="admin-table" aria-label="Подсказки">
+              <thead>
+                <tr>
+                  <th>Порядок</th>
+                  <th>Вопрос</th>
+                  <th>На сайте</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody id="adminHintsBody"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div id="adminTabBroadcast" class="admin-tab-panel" hidden role="tabpanel" aria-labelledby="adminTabBtnBroadcast">
+          <div class="admin-users-tab-head">
+            <h1 class="admin-page-title">Рассылки</h1>
+            <p class="admin-panel-lead">
+              In-app уведомления (колокол в шапке). Выберите аудиторию и отправьте сообщение. Локально — очередь в браузере; с сервером API — запись в БД для каждого пользователя.
+            </p>
+          </div>
+          <form class="admin-broadcast-form" id="adminBroadcastForm" novalidate>
+            <div class="admin-form-grid">
+              <label class="field field-span2">
+                <span>Заголовок</span>
+                <input type="text" id="bcTitle" maxlength="200" required placeholder="Например: Техработы вечером" />
+              </label>
+              <label class="field field-span2">
+                <span>Текст</span>
+                <textarea id="bcBody" rows="4" maxlength="4000" required placeholder="Краткий текст уведомления…"></textarea>
+              </label>
+              <label class="field field-span2">
+                <span>Ссылка при клике (необязательно)</span>
+                <input type="text" id="bcLink" maxlength="500" placeholder="Пусто — без перехода (только рассылка в колоколе)" />
+              </label>
+            </div>
+            <fieldset class="admin-broadcast-filters">
+              <legend>Кому отправить</legend>
+              <label class="field checkbox"><input type="checkbox" id="bcAll" /> <span>Все зарегистрированные</span></label>
+              <div class="admin-broadcast-roles" id="bcRolesWrap">
+                <label class="field checkbox"><input type="checkbox" name="bcRole" value="user" checked /> <span>Пользователи</span></label>
+                <label class="field checkbox"><input type="checkbox" name="bcRole" value="trader" /> <span>Трейдеры</span></label>
+                <label class="field checkbox"><input type="checkbox" name="bcRole" value="manager" /> <span>Менеджеры</span></label>
+                <label class="field checkbox"><input type="checkbox" name="bcRole" value="admin" /> <span>Администраторы</span></label>
+              </div>
+            </fieldset>
+            <button type="submit" class="btn-cs-cart" id="bcSubmit">Отправить рассылку</button>
+            <p class="admin-taxonomy-note" id="bcNote" role="status" aria-live="polite"></p>
+          </form>
+        </div>
+
+        <div id="adminTabUsers" class="admin-tab-panel" hidden role="tabpanel" aria-labelledby="adminTabBtnUsers">
+          <div class="admin-users-tab-head">
+            <h1 class="admin-page-title">Пользователи</h1>
+            <p class="admin-panel-lead">
+              Все зарегистрированные на сайте аккаунты (кроме входа администратора по конфигу). Роль по умолчанию — пользователь; менеджер и трейдер — для будущих функций поддержки и заявок на цену.
+            </p>
+          </div>
+          <section class="admin-users-roles" aria-labelledby="usersRolesHeading">
+            <h2 id="usersRolesHeading" class="admin-taxonomy-title">Список аккаунтов</h2>
+            <div class="admin-table-wrap">
+              <table class="admin-table admin-users-table" aria-label="Зарегистрированные пользователи">
+                <thead>
+                  <tr>
+                    <th>Email</th>
+                    <th>Имя в кабинете</th>
+                    <th>Роль</th>
+                  </tr>
+                </thead>
+                <tbody id="adminUsersBody"></tbody>
+              </table>
+            </div>
+            <p class="admin-taxonomy-note" id="adminUsersNote" role="status" aria-live="polite"></p>
+          </section>
+        </div>
+
+        <div id="adminTabTraders" class="admin-tab-panel" hidden role="tabpanel" aria-labelledby="adminTabBtnTraders">
+          <div class="admin-users-tab-head">
+            <h1 class="admin-page-title">Заявки в трейдеры</h1>
+            <p class="admin-panel-lead">
+              Заявки от клиентов из личного кабинета. Откройте строку — одобрите или откажите; при одобрении роль пользователя станет «трейдер».
+            </p>
+          </div>
+          <div class="admin-table-wrap">
+            <table class="admin-table" aria-label="Заявки в трейдеры">
+              <thead>
+                <tr>
+                  <th>Дата</th>
+                  <th>Email</th>
+                  <th>Telegram</th>
+                  <th>Steam</th>
+                  <th>Статус</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody id="adminTradersBody"></tbody>
+            </table>
+          </div>
+          <p class="admin-taxonomy-note" id="adminTradersNote" role="status" aria-live="polite"></p>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <!-- Карточка заказа (админ) -->
+  <div class="modal" id="adminOrderModal" aria-hidden="true" role="dialog" aria-labelledby="adminOrderModalTitle">
+    <div class="modal-backdrop" id="adminOrderModalBackdrop"></div>
+    <div class="modal-box modal-box-wide admin-order-modal-box">
+      <div class="modal-head">
+        <h2 id="adminOrderModalTitle">Заказ</h2>
+        <button type="button" class="icon-btn" id="adminOrderModalClose" aria-label="Закрыть">×</button>
+      </div>
+      <div class="modal-body admin-order-modal-body" id="adminOrderModalBody"></div>
+    </div>
+  </div>
+
+  <div class="modal" id="traderAppModal" aria-hidden="true" role="dialog" aria-labelledby="traderAppModalTitle">
+    <div class="modal-backdrop" id="traderAppModalBackdrop"></div>
+    <div class="modal-box trader-app-review-modal">
+      <div class="modal-head trader-app-review-head">
+        <div class="trader-app-review-head-text">
+          <h2 id="traderAppModalTitle">Заявка в трейдеры</h2>
+          <p class="trader-app-review-lead">Проверьте контакты и примите решение по роли трейдера.</p>
+        </div>
+        <button type="button" class="icon-btn trader-app-review-close" id="traderAppModalClose" aria-label="Закрыть">×</button>
+      </div>
+      <div class="modal-body trader-app-review-body">
+        <div id="traderAppModalDl" class="trader-app-review-mount"></div>
+        <div class="trader-app-review-actions" id="traderAppModalActions" hidden>
+          <button type="button" class="trader-app-review-btn trader-app-review-btn--secondary" id="traderAppRejectBtn">Отказать</button>
+          <button type="button" class="trader-app-review-btn trader-app-review-btn--primary" id="traderAppApproveBtn">Одобрить</button>
+        </div>
+        <p class="form-note trader-app-review-note" id="traderAppModalNote" role="status" aria-live="polite"></p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Редактор одного товара -->
+  <div class="modal" id="itemModal" aria-hidden="true" role="dialog" aria-labelledby="itemModalTitle">
+    <div class="modal-backdrop" id="itemModalBackdrop"></div>
+    <div class="modal-box modal-box-wide">
+      <div class="modal-head">
+        <h2 id="itemModalTitle">Товар</h2>
+        <button type="button" class="icon-btn" id="itemModalClose" aria-label="Закрыть">×</button>
+      </div>
+      <form class="modal-body admin-item-form" id="itemForm">
+        <input type="hidden" name="editId" id="fieldEditId" value="" />
+        <div class="admin-form-grid">
+          <label class="field">
+            <span>ID (для нового оставьте пустым — сгенерируется)</span>
+            <input type="text" name="id" id="fieldId" maxlength="64" />
+          </label>
+          <label class="field">
+            <span>Название</span>
+            <input type="text" name="name" id="fieldName" required maxlength="200" />
+          </label>
+          <label class="field">
+            <span>Герой (тег)</span>
+            <select name="hero" id="fieldHeroSelect" required></select>
+          </label>
+          <label class="field">
+            <span>Тип предмета (тег)</span>
+            <select name="itemType" id="fieldItemTypeSelect" required></select>
+          </label>
+          <label class="field">
+            <span>Редкость (бейдж)</span>
+            <select name="rarity" id="fieldRarity" required>
+              <option value="arcana">Arcana</option>
+              <option value="immortal">Immortal</option>
+              <option value="mythical">Mythical</option>
+            </select>
+          </label>
+          <label class="field">
+            <span>Коллекция (сайдбар)</span>
+            <select name="collectionId" id="fieldCollectionSelect" required></select>
+          </label>
+          <label class="field">
+            <span>Категория (сайдбар)</span>
+            <select name="category" id="fieldCategorySelect" required></select>
+          </label>
+          <label class="field">
+            <span>Цена, ₽</span>
+            <input type="number" name="price" id="fieldPrice" required min="0" step="1" />
+          </label>
+          <label class="field">
+            <span>Иконка (эмодзи, если нет картинки)</span>
+            <input type="text" name="icon" id="fieldIcon" maxlength="8" placeholder="🎁" />
+          </label>
+          <label class="field field-span2">
+            <span>URL картинки (https)</span>
+            <input type="url" name="imageUrl" id="fieldImageUrl" maxlength="2000" placeholder="https://…" />
+          </label>
+          <label class="field field-span2">
+            <span>URL видео (YouTube или прямой файл .mp4 / .webm)</span>
+            <input type="url" name="videoUrl" id="fieldVideoUrl" maxlength="2000" placeholder="https://youtube.com/watch?v=…" />
+          </label>
+          <label class="field field-span2">
+            <span>Описание</span>
+            <textarea name="description" id="fieldDescription" rows="4" maxlength="4000"></textarea>
+          </label>
+          <label class="field field-span2">
+            <span>Подробности (каждая строка — отдельный пункт списка)</span>
+            <textarea name="detailsText" id="fieldDetailsText" rows="5" maxlength="8000" placeholder="Строка 1&#10;Строка 2"></textarea>
+          </label>
+          <label class="field checkbox field-span2">
+            <input type="checkbox" name="traderListingsAllowed" id="fieldTraderListingsAllowed" checked />
+            <span>Разрешить трейдерам выставлять лоты на этот предмет</span>
+          </label>
+        </div>
+        <div class="admin-modal-actions">
+          <button type="button" class="btn btn-outline" id="itemModalCancel">Отмена</button>
+          <button type="submit" class="btn-cs-cart">Сохранить</button>
+        </div>
+        <p class="form-note" id="itemFormNote" role="status"></p>
+      </form>
+    </div>
+  </div>
+
+  <footer class="site-footer">
+    <div class="container footer-inner">
+      <p class="footer-brand">Skinexs · админ-панель (локальное хранилище)</p>
+    </div>
+  </footer>
+
+  <script src="js/data.js"></script>
+  <script src="js/catalog-meta.js"></script>
+  <script src="js/catalog-meta-store.js"></script>
+  <script src="js/shared.js"></script>
+  <script src="js/server-config.js"></script>
+  <script src="js/admin-config.js"></script>
+  <script src="js/bootstrap-server.js"></script>
+  <script src="js/catalog-store.js"></script>
+  <script src="js/taxonomy.js"></script>
+  <script src="js/auth-store.js"></script>
+  <script src="js/notifications-store.js"></script>
+  <script src="js/admin-auth.js"></script>
+  <script src="js/account-store.js"></script>
+  <script src="js/market-offers-store.js"></script>
+  <script src="js/reviews-store.js"></script>
+  <script src="js/site-settings.js"></script>
+  <script src="js/hints-store.js"></script>
+  <script src="js/trader-applications-store.js"></script>
+  <script src="js/admin-panel.js"></script>
+  <script src="js/inject-nav.js"></script>
+  <script src="js/notifications-ui.js"></script>
+</body>
+</html>

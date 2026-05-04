@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="noindex, nofollow" />
+  <title>Вход и регистрация — Skinexs</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body class="auth-body">
+  <div class="bg-glow" aria-hidden="true"></div>
+
+  <header class="site-header">
+    <div class="container header-inner">
+      <div class="header-left">
+        <a class="logo" href="index.html">
+          <span class="logo-mark">S</span>
+          <span class="logo-text">Skinexs</span>
+        </a>
+        <nav class="nav nav-primary" aria-label="Основное меню">
+          <a href="index.html#catalog">Каталог</a>
+          <a href="support.html">Поддержка</a>
+          <a href="reviews.html">Отзывы</a>
+        </nav>
+      </div>
+      <div class="header-actions">
+        <button type="button" class="btn btn-ghost cart-toggle" id="cartBtn" aria-label="Корзина">
+          <span class="cart-icon" aria-hidden="true"></span>
+          <span class="cart-label">Корзина</span>
+          <span class="cart-count" id="cartCount">0</span>
+        </button>
+        <div class="header-auth" aria-label="Вход и личный кабинет">
+          <div class="header-auth-slot">
+            <span id="userNavSlot" class="user-nav-slot"></span>
+            <span id="adminNavSlot" class="admin-nav-slot"></span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="auth-main cs-scope">
+    <div class="container container-narrow">
+      <div class="auth-card">
+        <h1 class="auth-title">Аккаунт Skinexs</h1>
+        <p class="auth-lead">
+          Регистрация для клиентов и вход по email. Роли «менеджер» и «трейдер» назначает администратор в админ-панели.
+          Администратор входит здесь же — тем же email и паролем из настроек <code>admin-config.js</code>.
+          Вход через Steam: OpenID и серверная проверка <code>check_authentication</code> (запускайте backend из папки <code>server</code>). Сайт откройте по <strong>http://localhost</strong> или <strong>https://</strong> (не <code>file://</code>).
+        </p>
+
+        <div class="auth-tabs" role="tablist">
+          <button type="button" class="auth-tab is-active" id="tabLogin" role="tab" aria-selected="true" aria-controls="panelLogin">Вход</button>
+          <button type="button" class="auth-tab" id="tabRegister" role="tab" aria-selected="false" aria-controls="panelRegister">Регистрация</button>
+        </div>
+
+        <div id="panelLogin" class="auth-panel" role="tabpanel" aria-labelledby="tabLogin">
+          <form id="formLogin" class="auth-form" novalidate>
+            <label class="field">
+              <span>Email</span>
+              <input type="email" name="email" required autocomplete="username" />
+            </label>
+            <label class="field">
+              <span>Пароль</span>
+              <input type="password" name="password" required autocomplete="current-password" />
+            </label>
+            <button type="submit" class="btn-cs-cart btn-block auth-submit">Войти</button>
+            <div class="auth-steam-wrap">
+              <span class="auth-steam-sep">или</span>
+              <button type="button" class="btn-steam btn-block" id="btnSteamLogin" title="Войти через Steam OpenID">
+                <span class="btn-steam-icon" aria-hidden="true"></span>
+                Войти через Steam
+              </button>
+            </div>
+            <p class="auth-note" id="loginMsg" role="status" aria-live="polite"></p>
+          </form>
+        </div>
+
+        <div id="panelRegister" class="auth-panel" hidden role="tabpanel" aria-labelledby="tabRegister">
+          <form id="formRegister" class="auth-form" novalidate>
+            <label class="field">
+              <span>Email</span>
+              <input type="email" name="email" required autocomplete="email" />
+            </label>
+            <label class="field">
+              <span>Имя в кабинете</span>
+              <input type="text" name="displayName" maxlength="120" autocomplete="nickname" placeholder="Как к вам обращаться" />
+            </label>
+            <label class="field">
+              <span>Пароль</span>
+              <input type="password" name="password" required autocomplete="new-password" minlength="6" />
+            </label>
+            <label class="field">
+              <span>Повтор пароля</span>
+              <input type="password" name="password2" required autocomplete="new-password" minlength="6" />
+            </label>
+            <button type="submit" class="btn-cs-cart btn-block auth-submit">Создать аккаунт</button>
+            <p class="auth-note" id="registerMsg" role="status" aria-live="polite"></p>
+          </form>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container footer-inner">
+      <p class="footer-disclaimer" style="font-size: 11px; opacity: 0.85">
+        Демо: данные аккаунтов хранятся в браузере. Не используйте реальные пароли.
+      </p>
+    </div>
+  </footer>
+
+  <aside class="drawer" id="cartDrawer" aria-hidden="true" aria-labelledby="cartDrawerTitle">
+    <div class="drawer-backdrop" id="cartBackdrop" tabindex="-1"></div>
+    <div class="drawer-panel" role="dialog">
+      <div class="drawer-head">
+        <h2 id="cartDrawerTitle">Корзина</h2>
+        <button type="button" class="icon-btn" id="closeCart" aria-label="Закрыть">×</button>
+      </div>
+      <div class="drawer-body" id="cartItems"></div>
+      <div class="drawer-foot">
+        <p class="cart-total">Итого: <strong id="cartTotal">0 ₽</strong></p>
+        <a class="btn btn-primary btn-block cart-auth-cta" id="cartLoginCta" href="auth.html" hidden>Авторизоваться для оформления заказа</a>
+        <button type="button" class="btn btn-primary btn-block" id="checkoutOrder" hidden>Оформить заказ</button>
+        <p class="cart-checkout-note" id="cartCheckoutNote" role="status" aria-live="polite"></p>
+      </div>
+    </div>
+  </aside>
+
+  <script src="js/shared.js"></script>
+  <script src="js/data.js"></script>
+  <script src="js/server-config.js"></script>
+  <script src="js/admin-config.js"></script>
+  <script src="js/bootstrap-server.js"></script>
+  <script src="js/catalog-store.js"></script>
+  <script src="js/market-offers-store.js"></script>
+  <script src="js/taxonomy.js"></script>
+  <script src="js/auth-store.js"></script>
+  <script src="js/notifications-store.js"></script>
+  <script src="js/account-store.js"></script>
+  <script src="js/app.js"></script>
+  <script src="js/inject-nav.js"></script>
+  <script src="js/notifications-ui.js"></script>
+  <script src="js/steam-openid.js"></script>
+  <script src="js/auth-page.js"></script>
+</body>
+</html>

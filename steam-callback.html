@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="noindex, nofollow" />
+  <title>Вход через Steam — Skinexs</title>
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body class="auth-body">
+  <div class="bg-glow" aria-hidden="true"></div>
+  <main class="auth-main cs-scope">
+    <div class="container container-narrow">
+      <div class="auth-card">
+        <h1 class="auth-title">Steam</h1>
+        <p class="auth-lead" id="steamStatus">Обработка ответа…</p>
+        <p class="auth-note" id="steamMsg" role="status"></p>
+        <p class="auth-steam-hint">
+          Откройте сайт по адресу <strong>http://localhost</strong> или <strong>https://</strong>, не через <code>file://</code> — иначе Steam не вернёт ответ.
+        </p>
+        <p><a href="auth.html" class="nav-user-login">← Назад к входу</a></p>
+      </div>
+    </div>
+  </main>
+  <script src="js/steam-openid.js"></script>
+  <script src="js/server-config.js"></script>
+  <script src="js/admin-config.js"></script>
+  <script src="js/auth-store.js"></script>
+  <script>
+    (function () {
+      var Auth = window.SkinexAuth;
+      var statusEl = document.getElementById("steamStatus");
+      var msgEl = document.getElementById("steamMsg");
+      if (!Auth) {
+        if (statusEl) statusEl.textContent = "Ошибка загрузки.";
+        return;
+      }
+      Auth.completeSteamLoginAsync(window.location.search).then(function (r) {
+        if (!r.ok) {
+          if (statusEl) statusEl.textContent = "Не удалось войти";
+          if (msgEl) {
+            msgEl.textContent = r.message || "Ошибка.";
+            msgEl.style.color = "#f87171";
+          }
+          return;
+        }
+        var role = r.role || "user";
+        var next = "index.html";
+        try {
+          next = sessionStorage.getItem("skinex_steam_next") || "index.html";
+          sessionStorage.removeItem("skinex_steam_next");
+        } catch (e) {}
+        if (role === "admin" && next === "account.html") next = "admin.html";
+        if (statusEl) statusEl.textContent = "Успешно. Переход…";
+        if (msgEl) msgEl.textContent = "";
+        window.location.replace(next);
+      });
+    })();
+  </script>
+</body>
+</html>

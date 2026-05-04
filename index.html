@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Эксклюзивные сеты Dota 2 — редкие комплекты для коллекционеров и игроков." />
+  <title>Skinexs — эксклюзивные сеты Dota 2</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&family=Montserrat:wght@400;500;600;700&family=Outfit:wght@500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+  <div class="bg-glow" aria-hidden="true"></div>
+
+  <header class="site-header">
+    <div class="container header-inner">
+      <div class="header-left">
+        <a class="logo" href="index.html">
+          <span class="logo-mark">S</span>
+          <span class="logo-text">Skinexs</span>
+        </a>
+        <nav class="nav nav-primary" aria-label="Основное меню">
+          <a href="index.html#catalog">Каталог</a>
+          <a href="support.html">Поддержка</a>
+          <a href="reviews.html">Отзывы</a>
+        </nav>
+      </div>
+      <div class="header-actions">
+        <button type="button" class="btn btn-ghost cart-toggle" id="cartBtn" aria-label="Корзина">
+          <span class="cart-icon" aria-hidden="true"></span>
+          <span class="cart-label">Корзина</span>
+          <span class="cart-count" id="cartCount">0</span>
+        </button>
+        <div class="header-auth" aria-label="Вход и личный кабинет">
+          <div class="header-auth-slot">
+            <span id="userNavSlot" class="user-nav-slot"></span>
+            <span id="adminNavSlot" class="admin-nav-slot"></span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="container hero-grid">
+        <div class="hero-copy">
+          <p class="eyebrow">Площадка продавца</p>
+          <h1>Эксклюзивные сеты <span class="gradient-text">Dota 2</span></h1>
+          <p class="lead">
+            Редкие архивные и лимитированные комплекты — проверенные лоты, честные цены,
+            безопасная сделка через Steam или удобный для вас способ передачи.
+          </p>
+          <div class="hero-actions">
+            <a class="btn btn-primary" href="#catalog">Смотреть каталог</a>
+            <a class="btn btn-outline" href="reviews.html">Отзывы</a>
+          </div>
+          <dl class="stats">
+            <div><dt>Лоты</dt><dd id="statLots">12+</dd></div>
+            <div><dt>Сделки</dt><dd>100%</dd></div>
+            <div><dt>Ответ</dt><dd>&lt; 24 ч</dd></div>
+          </dl>
+        </div>
+        <div class="hero-card" role="img" aria-label="Превью редкого сета">
+          <div class="hero-card-inner">
+            <span class="badge">Эксклюзив</span>
+            <h2 class="hero-card-title">Архивная коллекция</h2>
+            <p class="hero-card-meta">Immortal · Mythical · Collector’s Cache</p>
+            <div class="hero-orbs" aria-hidden="true"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section section-catalog" id="catalog" aria-label="Каталог сетов">
+      <div class="container container-wide cs-scope">
+        <div class="catalog-layout catalog-layout--v2">
+          <aside class="catalog-aside catalog-aside--market" aria-label="Фильтры каталога">
+            <div class="catalog-side-block">
+              <h3 class="catalog-side-title">Collections <span class="catalog-side-hint">сундуки</span></h3>
+              <nav class="catalog-side-list" id="collectionFilterGroup" aria-label="Коллекции"></nav>
+            </div>
+            <div class="catalog-side-block">
+              <h3 class="catalog-side-title">Categories</h3>
+              <nav class="catalog-side-list" id="categoryFilterGroup" aria-label="Категории"></nav>
+            </div>
+          </aside>
+
+          <div class="catalog-content catalog-content--v2">
+            <nav class="breadcrumbs" aria-label="Хлебные крошки">
+              <a href="index.html">Главная</a>
+              <span class="bc-sep" aria-hidden="true">/</span>
+              <span class="bc-current">Каталог</span>
+            </nav>
+
+            <div class="catalog-filters-panel">
+              <div class="catalog-filters-row catalog-filters-row--primary catalog-filters-row--top">
+                <label class="catalog-search-field">
+                  <span class="catalog-search-icon" aria-hidden="true"></span>
+                  <input
+                    type="search"
+                    id="catalogSearch"
+                    name="catalogSearch"
+                    autocomplete="off"
+                    placeholder="Поиск по названию"
+                  />
+                </label>
+                <div class="catalog-hero-picker">
+                  <label class="catalog-hero-label" for="catalogHero">Герой</label>
+                  <div class="catalog-hero-select-wrap">
+                    <select id="catalogHero" class="catalog-hero-select" aria-label="Фильтр по герою"></select>
+                  </div>
+                </div>
+              </div>
+              <div class="catalog-filters-row catalog-filters-row--secondary">
+                <div class="catalog-field-inline catalog-field-inline--grow">
+                  <label for="catalogSort">Сортировка</label>
+                  <select id="catalogSort" aria-label="Сортировка товаров">
+                    <option value="default">По умолчанию</option>
+                    <option value="price-asc">Цена: по возрастанию</option>
+                    <option value="price-desc">Цена: по убыванию</option>
+                    <option value="name">Название: А–Я</option>
+                  </select>
+                </div>
+                <div class="catalog-field-inline catalog-field-inline--grow">
+                  <label for="catalogItemType">По типу</label>
+                  <select id="catalogItemType" aria-label="Тип предмета"></select>
+                </div>
+                <div class="catalog-field-inline catalog-field-inline--grow">
+                  <label for="catalogRarity">Редкость</label>
+                  <select id="catalogRarity" aria-label="Редкость">
+                    <option value="all">Все</option>
+                    <option value="arcana">Arcana</option>
+                    <option value="immortal">Immortal</option>
+                    <option value="mythical">Mythical</option>
+                  </select>
+                </div>
+                <button type="button" class="catalog-reset-all" id="catalogResetAll" title="Сбросить фильтры">
+                  <span class="catalog-reset-x" aria-hidden="true">×</span>
+                  Сбросить все
+                </button>
+              </div>
+            </div>
+
+            <p class="catalog-found" id="catalogFound">Найдено: 0</p>
+
+            <div class="catalog-grid catalog-grid--v2" id="catalogGrid"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <footer class="site-footer">
+    <div class="container footer-inner">
+      <p class="footer-brand" id="siteFooterBrand">Skinexs · эксклюзивные сеты Dota 2</p>
+      <p class="footer-disclaimer" id="siteFooterDisclaimer">
+        Dota и Dota 2 являются товарными знаками Valve Corporation. Сайт не аффилирован с Valve.
+        Торговля предметами осуществляется в рамках пользовательского соглашения Steam.
+      </p>
+      <p class="footer-legal-links">
+        <a href="legal/terms.html">Пользовательское соглашение</a>
+        ·
+        <a href="legal/privacy.html">Конфиденциальность</a>
+        ·
+        <a href="legal/marketplace.html">Правила маркетплейса</a>
+      </p>
+    </div>
+  </footer>
+
+  <!-- Drawer cart -->
+  <aside class="drawer" id="cartDrawer" aria-hidden="true" aria-labelledby="cartDrawerTitle">
+    <div class="drawer-backdrop" id="cartBackdrop" tabindex="-1"></div>
+    <div class="drawer-panel" role="dialog">
+      <div class="drawer-head">
+        <h2 id="cartDrawerTitle">Корзина</h2>
+        <button type="button" class="icon-btn" id="closeCart" aria-label="Закрыть">×</button>
+      </div>
+      <div class="drawer-body" id="cartItems"></div>
+      <div class="drawer-foot">
+        <p class="cart-total">Итого: <strong id="cartTotal">0 ₽</strong></p>
+        <a class="btn btn-primary btn-block cart-auth-cta" id="cartLoginCta" href="auth.html" hidden>Авторизоваться для оформления заказа</a>
+        <button type="button" class="btn btn-primary btn-block" id="checkoutOrder" hidden>Оформить заказ</button>
+        <p class="cart-checkout-note" id="cartCheckoutNote" role="status" aria-live="polite"></p>
+      </div>
+    </div>
+  </aside>
+
+  <script src="js/data.js"></script>
+  <script src="js/catalog-meta.js"></script>
+  <script src="js/catalog-meta-store.js"></script>
+  <script src="js/shared.js"></script>
+  <script src="js/server-config.js"></script>
+  <script src="js/admin-config.js"></script>
+  <script src="js/bootstrap-server.js"></script>
+  <script src="js/catalog-store.js"></script>
+  <script src="js/market-offers-store.js"></script>
+  <script src="js/taxonomy.js"></script>
+  <script src="js/auth-store.js"></script>
+  <script src="js/notifications-store.js"></script>
+  <script src="js/admin-auth.js"></script>
+  <script src="js/account-store.js"></script>
+  <script src="js/site-settings.js"></script>
+  <script src="js/app.js"></script>
+  <script src="js/inject-nav.js"></script>
+  <script src="js/notifications-ui.js"></script>
+  <script>
+    if (window.SkinexSiteSettings) SkinexSiteSettings.applyToPage();
+  </script>
+</body>
+</html>

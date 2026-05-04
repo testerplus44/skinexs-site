@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Личный кабинет Skinexs — баланс и история заказов." />
+  <title>Личный кабинет — Skinexs</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&family=Montserrat:wght@400;500;600;700&family=Outfit:wght@500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+  <div class="bg-glow" aria-hidden="true"></div>
+
+  <header class="site-header">
+    <div class="container header-inner">
+      <div class="header-left">
+        <a class="logo" href="index.html">
+          <span class="logo-mark">S</span>
+          <span class="logo-text">Skinexs</span>
+        </a>
+        <nav class="nav nav-primary" aria-label="Основное меню">
+          <a href="index.html#catalog">Каталог</a>
+          <a href="support.html">Поддержка</a>
+          <a href="reviews.html">Отзывы</a>
+        </nav>
+      </div>
+      <div class="header-actions">
+        <button type="button" class="btn btn-ghost cart-toggle" id="cartBtn" aria-label="Корзина">
+          <span class="cart-icon" aria-hidden="true"></span>
+          <span class="cart-label">Корзина</span>
+          <span class="cart-count" id="cartCount">0</span>
+        </button>
+        <div class="header-auth" aria-label="Вход и личный кабинет">
+          <div class="header-auth-slot">
+            <span id="userNavSlot" class="user-nav-slot"></span>
+            <span id="adminNavSlot" class="admin-nav-slot"></span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="account-main account-page account-page--minimal account-page--cabinet cs-scope">
+    <div class="container container-wide">
+      <nav class="breadcrumbs product-breadcrumbs account-breadcrumbs" aria-label="Хлебные крошки">
+        <a href="index.html">Главная</a>
+        <span class="bc-sep" aria-hidden="true">/</span>
+        <span class="bc-current">Кабинет</span>
+      </nav>
+
+      <header class="account-page-header account-page-header--minimal account-page-header--cabinet">
+        <div class="account-page-header-text">
+          <h1 class="account-title">Личный кабинет</h1>
+          <p class="account-hero-lead">Баланс, активные сделки и профиль — в одном месте.</p>
+        </div>
+        <span class="account-role-pill" id="accountRolePill" hidden></span>
+      </header>
+      <p class="account-role-note" id="accountRoleNote" hidden></p>
+
+      <nav class="account-nav account-nav--cabinet" id="accountSectionNav" aria-label="Разделы кабинета">
+        <a class="account-nav-link" href="#account-dash">Сводка</a>
+        <a class="account-nav-link" href="#trader-deals" id="accountNavTrader" hidden>Исполнение</a>
+        <a class="account-nav-link" href="#buyer-active">Покупки</a>
+        <a class="account-nav-link" href="#buyer-archive">Архив</a>
+        <a class="account-nav-link" href="#profile">Профиль</a>
+      </nav>
+
+      <div class="account-layout account-layout--cabinet">
+        <div class="account-layout-main">
+          <div id="account-dash" class="account-dash account-dash--cabinet">
+            <section class="account-dash-balance account-dash-balance--cabinet" aria-labelledby="balanceHeading">
+              <div class="account-balance-glow" aria-hidden="true"></div>
+              <div class="account-balance-inner">
+                <h2 id="balanceHeading" class="account-balance-label">Баланс</h2>
+                <p class="account-balance-value" id="balanceValue">0 ₽</p>
+                <button type="button" class="btn-cs-cart account-topup-open account-topup-open--cabinet" id="openTopup">
+                  Пополнить баланс
+                </button>
+              </div>
+              <p class="account-balance-hint" id="accountBalanceHint">Списание при оплате заказов. Пополнение — демо.</p>
+              <p class="account-return-msg" id="accountReturnMsg" hidden role="status" aria-live="polite"></p>
+            </section>
+            <div class="account-dash-stats account-dash-stats--cabinet" id="accountStatsGrid" aria-label="Сводка по заказам"></div>
+          </div>
+
+          <section class="account-panel account-panel--cabinet account-panel--trader account-section" id="trader-deals" hidden aria-labelledby="traderDealsHeading">
+            <div class="account-section-head">
+              <h2 id="traderDealsHeading" class="account-panel-title">Исполнение заказов</h2>
+              <p class="account-panel-desc">Ваши сделки как трейдер — этапы и покупатель.</p>
+            </div>
+            <div id="ordersTraderActive" class="account-orders"></div>
+            <h3 class="account-subpanel-title" id="traderDoneSub">Архив</h3>
+            <div id="ordersTraderDone" class="account-orders"></div>
+          </section>
+
+          <section class="account-panel account-panel--cabinet account-section" id="buyer-active" aria-labelledby="activeHeading">
+            <div class="account-section-head">
+              <h2 id="activeHeading" class="account-panel-title">Активные заказы</h2>
+              <p class="account-panel-desc">Статус виден вам и исполнителю.</p>
+            </div>
+            <div id="ordersActive" class="account-orders"></div>
+          </section>
+
+          <section class="account-panel account-panel--cabinet account-section" id="buyer-archive" aria-labelledby="doneHeading">
+            <div class="account-section-head">
+              <h2 id="doneHeading" class="account-panel-title">Архив</h2>
+              <p class="account-panel-desc">Завершённые и отменённые.</p>
+            </div>
+            <div id="ordersDone" class="account-orders"></div>
+          </section>
+        </div>
+
+        <aside class="account-layout-aside account-layout-aside--cabinet" id="profile" aria-label="Профиль">
+          <section class="account-side-card account-side-card--profile account-side-card--cabinet-accent">
+            <h2 class="account-side-title">Имя</h2>
+            <form class="account-name-form" id="nameForm" novalidate>
+              <label class="account-name-label" for="displayName">Как отображать</label>
+              <div class="account-name-row">
+                <input type="text" id="displayName" name="displayName" maxlength="40" autocomplete="nickname" placeholder="Имя" />
+                <button type="submit" class="btn btn-outline account-name-save">OK</button>
+              </div>
+              <p class="account-name-note" id="nameNote" role="status" aria-live="polite"></p>
+            </form>
+          </section>
+
+          <section class="account-side-card" id="accountIdentityCard">
+            <h2 class="account-side-title">Аккаунт</h2>
+            <dl class="account-info-dl" id="accountIdentityDl"></dl>
+          </section>
+
+          <section class="account-side-card account-side-card--cabinet" id="accountTraderApplyCard" hidden>
+            <h2 class="account-side-title">Трейдер</h2>
+            <p class="account-trader-apply-lead">После одобрения заявки вы сможете выставлять лоты и исполнять заказы.</p>
+            <button type="button" class="btn btn-outline btn-block" id="openTraderApply">Стать трейдером</button>
+            <p class="account-name-note" id="traderApplyCardNote" role="status" aria-live="polite" hidden></p>
+          </section>
+
+          <section class="account-side-card account-side-card--tips account-side-card--cabinet-tips">
+            <h2 class="account-side-title">Кратко</h2>
+            <ul class="account-tip-list account-tip-list--compact">
+              <li>Данные только в этом браузере.</li>
+              <li>Подтверждайте получение после выдачи в Steam.</li>
+              <li><a href="support.html">Поддержка</a></li>
+            </ul>
+          </section>
+        </aside>
+      </div>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container footer-inner">
+      <p class="footer-brand" id="siteFooterBrand">Skinexs · эксклюзивные сеты Dota 2</p>
+      <p class="footer-disclaimer" id="siteFooterDisclaimer">
+        Dota и Dota 2 являются товарными знаками Valve Corporation. Сайт не аффилирован с Valve.
+      </p>
+    </div>
+  </footer>
+
+  <aside class="drawer" id="cartDrawer" aria-hidden="true" aria-labelledby="cartDrawerTitle">
+    <div class="drawer-backdrop" id="cartBackdrop" tabindex="-1"></div>
+    <div class="drawer-panel" role="dialog">
+      <div class="drawer-head">
+        <h2 id="cartDrawerTitle">Корзина</h2>
+        <button type="button" class="icon-btn" id="closeCart" aria-label="Закрыть">×</button>
+      </div>
+      <div class="drawer-body" id="cartItems"></div>
+      <div class="drawer-foot">
+        <p class="cart-total">Итого: <strong id="cartTotal">0 ₽</strong></p>
+        <a class="btn btn-primary btn-block cart-auth-cta" id="cartLoginCta" href="auth.html" hidden>Авторизоваться для оформления заказа</a>
+        <button type="button" class="btn btn-primary btn-block" id="checkoutOrder" hidden>Оформить заказ</button>
+        <p class="cart-checkout-note" id="cartCheckoutNote" role="status" aria-live="polite"></p>
+      </div>
+    </div>
+  </aside>
+
+  <div class="modal" id="traderApplyModal" aria-hidden="true" role="dialog" aria-labelledby="traderApplyTitle">
+    <div class="modal-backdrop" id="traderApplyBackdrop"></div>
+    <div class="modal-box">
+      <div class="modal-head">
+        <h2 id="traderApplyTitle">Стать трейдером</h2>
+        <button type="button" class="icon-btn" id="closeTraderApply" aria-label="Закрыть">×</button>
+      </div>
+      <form class="modal-body" id="traderApplyForm" novalidate>
+        <label class="field">
+          <span>Тег Telegram</span>
+          <input type="text" name="telegramTag" id="traderApplyTelegram" autocomplete="username" maxlength="65" placeholder="@username или username" required />
+        </label>
+        <label class="field">
+          <span>Ссылка на профиль Steam</span>
+          <input type="url" name="steamUrl" id="traderApplySteam" maxlength="2000" placeholder="https://steamcommunity.com/profiles/…" required />
+        </label>
+        <p class="modal-hint">Заявка уйдёт администратору. Укажите актуальные контакты.</p>
+        <button type="submit" class="btn-cs-cart btn-block">Подать заявку</button>
+        <p class="form-note" id="traderApplyFormNote" role="status" aria-live="polite"></p>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal пополнения -->
+  <div class="modal" id="topupModal" aria-hidden="true" role="dialog" aria-labelledby="topupTitle">
+    <div class="modal-backdrop" id="topupBackdrop"></div>
+    <div class="modal-box modal-box--topup">
+      <div class="modal-head">
+        <h2 id="topupTitle">Пополнение баланса</h2>
+        <button type="button" class="icon-btn" id="closeTopup" aria-label="Закрыть">×</button>
+      </div>
+      <form class="modal-body topup-form" id="topupForm">
+        <div class="topup-hero" aria-live="polite">
+          <span class="topup-hero-label">Сейчас на балансе</span>
+          <span class="topup-hero-value" id="topupModalBalance">0 ₽</span>
+        </div>
+        <label class="field topup-field-amount">
+          <span>Сумма пополнения, ₽</span>
+          <input
+            type="number"
+            id="topupAmount"
+            name="amount"
+            min="10"
+            max="500000"
+            step="1"
+            value="1000"
+            required
+            inputmode="numeric"
+            autocomplete="transaction-amount"
+          />
+        </label>
+        <p class="topup-snaps-label">Быстрый выбор</p>
+        <div class="topup-snaps" role="group" aria-label="Быстрый выбор суммы">
+          <button type="button" class="topup-snap" data-topup-snap="100">100 ₽</button>
+          <button type="button" class="topup-snap" data-topup-snap="500">500 ₽</button>
+          <button type="button" class="topup-snap" data-topup-snap="1000">1 000 ₽</button>
+          <button type="button" class="topup-snap" data-topup-snap="3000">3 000 ₽</button>
+          <button type="button" class="topup-snap" data-topup-snap="5000">5 000 ₽</button>
+        </div>
+        <div class="topup-steps" id="topupYooSteps" hidden>
+          <p class="topup-steps-title">Как оплатить</p>
+          <ol class="topup-steps-list">
+            <li>Нажмите кнопку ниже — откроется безопасная страница ЮKassa.</li>
+            <li>Оплатите картой (в тестовом магазине — тестовой картой из справки ЮKassa).</li>
+            <li>После оплаты вы вернётесь в кабинет, баланс обновится автоматически.</li>
+          </ol>
+        </div>
+        <p class="modal-hint topup-modal-hint" id="topupModalHint">Демо: сумма будет добавлена к балансу в этом браузере.</p>
+        <button type="submit" class="btn-cs-cart btn-block" id="topupSubmitBtn">Пополнить</button>
+        <p class="form-note" id="topupNote" role="status" aria-live="polite"></p>
+      </form>
+    </div>
+  </div>
+
+  <script src="js/shared.js"></script>
+  <script src="js/server-config.js"></script>
+  <script src="js/admin-config.js"></script>
+  <script src="js/auth-store.js"></script>
+  <script src="js/notifications-store.js"></script>
+  <script src="js/market-offers-store.js"></script>
+  <script src="js/admin-auth.js"></script>
+  <script src="js/data.js"></script>
+  <script src="js/bootstrap-server.js"></script>
+  <script src="js/catalog-store.js"></script>
+  <script src="js/taxonomy.js"></script>
+  <script src="js/account-store.js"></script>
+  <script src="js/trader-applications-store.js"></script>
+  <script src="js/site-settings.js"></script>
+  <script src="js/app.js"></script>
+  <script src="js/account.js"></script>
+  <script src="js/inject-nav.js"></script>
+  <script src="js/notifications-ui.js"></script>
+  <script>
+    if (window.SkinexSiteSettings) SkinexSiteSettings.applyToPage();
+  </script>
+</body>
+</html>
