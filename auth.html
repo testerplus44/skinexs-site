@@ -46,11 +46,6 @@
     <div class="container container-narrow">
       <div class="auth-card">
         <h1 class="auth-title">Аккаунт Skinexs</h1>
-        <p class="auth-lead">
-          Регистрация для клиентов и вход по email. Роли «менеджер» и «трейдер» назначает администратор в админ-панели.
-          Администратор входит здесь же — тем же email и паролем из настроек <code>admin-config.js</code>.
-          Вход через Steam: OpenID и серверная проверка <code>check_authentication</code> (запускайте backend из папки <code>server</code>). Сайт откройте по <strong>http://localhost</strong> или <strong>https://</strong> (не <code>file://</code>).
-        </p>
 
         <div class="auth-tabs" role="tablist">
           <button type="button" class="auth-tab is-active" id="tabLogin" role="tab" aria-selected="true" aria-controls="panelLogin">Вход</button>
@@ -71,7 +66,14 @@
             <div class="auth-steam-wrap">
               <span class="auth-steam-sep">или</span>
               <button type="button" class="btn-steam btn-block" id="btnSteamLogin" title="Войти через Steam OpenID">
-                <span class="btn-steam-icon" aria-hidden="true"></span>
+                <span class="btn-steam-icon" aria-hidden="true">
+                  <svg class="btn-steam-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20" focusable="false">
+                    <path
+                      fill="currentColor"
+                      d="M11.979 0C5.678 0 .511 4.86.022 11.037l6.432 2.658c.545-.371 1.203-.59 1.912-.59.063 0 .125.004.188.006l2.861-4.142V8.91c0-2.495 2.028-4.524 4.524-4.524 2.493 0 4.524 2.031 4.524 4.527s-2.031 4.527-4.524 4.527h-.105l-4.078 2.978c0 3.231 2.639 5.871 5.871 5.871 3.232 0 5.871-2.64 5.871-5.871V11.37c0-.096-.008-.192-.016-.288C24.004 4.958 18.867.003 12.516.003c-.059 0-.118.003-.177.003L11.979 0zm-.005 1.531c5.45 0 9.878 4.427 9.878 9.878 0 .091-.012.18-.015.27l-5.635 2.525v-1.082c0-2.45-1.987-4.435-4.435-4.435-2.45 0-4.435 1.984-4.435 4.435v3.864l-6.041-2.598C1.254 5.549 5.678 1.531 11.974 1.531h.001zm-4.08 14.489l2.535 1.049c-.078.187-.123.392-.123.607 0 .747.604 1.349 1.349 1.349.746 0 1.349-.602 1.349-1.349 0-.747-.603-1.349-1.349-1.349-.215 0-.42.045-.607.123L7.894 16.02z"
+                    />
+                  </svg>
+                </span>
                 Войти через Steam
               </button>
             </div>
@@ -104,14 +106,6 @@
       </div>
     </div>
   </main>
-
-  <footer class="site-footer">
-    <div class="container footer-inner">
-      <p class="footer-disclaimer" style="font-size: 11px; opacity: 0.85">
-        Демо: данные аккаунтов хранятся в браузере. Не используйте реальные пароли.
-      </p>
-    </div>
-  </footer>
 
   <aside class="drawer" id="cartDrawer" aria-hidden="true" aria-labelledby="cartDrawerTitle">
     <div class="drawer-backdrop" id="cartBackdrop" tabindex="-1"></div>

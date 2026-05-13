@@ -2752,9 +2752,187 @@ a.btn[hidden] {
   color: rgba(161, 168, 206, 0.95);
 }
 
-.account-page-header--cabinet .account-role-pill {
-  align-self: center;
-  box-shadow: 0 6px 20px rgba(245, 95, 15, 0.15);
+.account-page-header--cabinet.account-page-header--cabinet-balance {
+  align-items: flex-start;
+  gap: 20px 28px;
+  padding-right: 0;
+}
+
+.account-page-header--cabinet .account-header-balance {
+  flex: 0 1 min(280px, 100%);
+  margin-left: auto;
+  width: 100%;
+  max-width: min(280px, 100%);
+  display: flex;
+  flex-direction: column;
+  align-self: stretch;
+}
+
+.account-page-header--cabinet .account-header-balance .account-balance-card {
+  flex: 1 1 auto;
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+}
+
+@media (max-width: 720px) {
+  .account-page-header--cabinet .account-header-balance {
+    margin-left: 0;
+    max-width: none;
+  }
+
+  .account-page-header--minimal.account-page-header--cabinet.account-page-header--cabinet-balance {
+    padding-right: 22px;
+  }
+}
+
+/* Карточка баланса в шапке кабинета */
+.account-balance-card.account-dash-balance--cabinet-header {
+  position: relative;
+  overflow: hidden;
+  padding: 14px 16px 15px;
+  border-right: none;
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  text-align: right;
+  background:
+    radial-gradient(ellipse 140% 90% at 100% 0%, rgba(245, 95, 15, 0.22), transparent 55%),
+    radial-gradient(ellipse 80% 60% at 0% 100%, rgba(136, 71, 255, 0.12), transparent 45%),
+    linear-gradient(165deg, rgba(26, 28, 40, 0.98), rgba(11, 12, 18, 0.94));
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.07),
+    0 1px 0 rgba(245, 95, 15, 0.12),
+    0 16px 48px rgba(0, 0, 0, 0.38);
+}
+
+.account-balance-card.account-dash-balance--cabinet-header::before {
+  content: "";
+  position: absolute;
+  left: 12px;
+  right: 12px;
+  top: 0;
+  height: 2px;
+  border-radius: 0 0 3px 3px;
+  background: linear-gradient(90deg, transparent, rgba(245, 95, 15, 0.85), rgba(255, 180, 120, 0.5), transparent);
+  opacity: 0.9;
+  pointer-events: none;
+}
+
+.account-balance-card-shine {
+  position: absolute;
+  inset: -40% -20% auto 40%;
+  height: 80%;
+  background: linear-gradient(125deg, transparent 30%, rgba(255, 255, 255, 0.04) 48%, transparent 62%);
+  pointer-events: none;
+  transform: rotate(-8deg);
+}
+
+.account-dash-balance--cabinet-header .account-balance-glow {
+  width: 120px;
+  height: 120px;
+  right: -36px;
+  top: -40px;
+  opacity: 0.35;
+  filter: blur(0.5px);
+}
+
+.account-dash-balance--cabinet-header .account-balance-label {
+  position: relative;
+  z-index: 1;
+  margin: 0 0 4px;
+  font-size: 0.65rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(180, 188, 220, 0.88);
+}
+
+.account-dash-balance--cabinet-header .account-balance-value {
+  position: relative;
+  z-index: 1;
+  margin: 0 0 12px;
+  font-family: var(--font-display, "Outfit", system-ui, sans-serif);
+  font-size: clamp(1.35rem, 2.8vw, 1.85rem);
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.03em;
+  line-height: 1.1;
+  color: #ffd8bf;
+  text-shadow:
+    0 0 36px rgba(245, 95, 15, 0.45),
+    0 1px 2px rgba(0, 0, 0, 0.45);
+}
+
+.account-dash-balance--cabinet-header .account-return-msg {
+  position: relative;
+  z-index: 1;
+  margin: 10px 0 0;
+  padding: 7px 10px;
+  border-radius: 10px;
+  font-size: 0.68rem;
+  line-height: 1.35;
+  text-align: right;
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+.account-dash-balance--cabinet-header .account-return-msg[hidden] {
+  display: none !important;
+  margin: 0;
+  padding: 0;
+  border: none;
+}
+
+.account-dash-balance--cabinet-header .account-balance-inner {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0;
+}
+
+.account-dash-balance--cabinet-header .account-topup-open--cabinet {
+  align-self: stretch;
+  max-width: 100%;
+  width: 100%;
+  margin: 0;
+  padding: 10px 14px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  border-radius: 12px;
+  border: none;
+  background: linear-gradient(180deg, #ff7a2e 0%, var(--cs-primary, #f55f0f) 45%, var(--cs-primary-dim, #c94a0a) 100%);
+  box-shadow:
+    0 4px 20px rgba(245, 95, 15, 0.45),
+    inset 0 1px 0 rgba(255, 255, 255, 0.22);
+  transition: transform 0.15s ease, filter 0.2s ease, box-shadow 0.2s ease;
+}
+
+.account-dash-balance--cabinet-header .account-topup-open--cabinet:hover {
+  filter: brightness(1.06);
+  box-shadow:
+    0 6px 28px rgba(245, 95, 15, 0.55),
+    inset 0 1px 0 rgba(255, 255, 255, 0.28);
+}
+
+.account-dash-balance--cabinet-header .account-topup-open--cabinet:active {
+  transform: scale(0.98);
+}
+
+@media (max-width: 720px) {
+  .account-balance-card.account-dash-balance--cabinet-header {
+    text-align: left;
+  }
+
+  .account-dash-balance--cabinet-header .account-balance-inner {
+    align-items: flex-start;
+  }
+
+  .account-dash-balance--cabinet-header .account-return-msg {
+    text-align: left;
+  }
 }
 
 .account-nav--cabinet .account-nav-link {
@@ -2904,6 +3082,20 @@ a.btn[hidden] {
   color: rgba(161, 168, 206, 0.92);
 }
 
+.account-page--cabinet .account-panel--cabinet .account-section-head {
+  margin-bottom: 12px;
+  padding-bottom: 10px;
+}
+
+.account-page--cabinet .account-panel--cabinet .account-panel-title {
+  font-size: 1rem;
+}
+
+.account-page--cabinet .account-panel--cabinet .account-panel-desc {
+  font-size: 0.78rem;
+  margin-top: 2px;
+}
+
 .account-layout--cabinet {
   gap: 28px;
   grid-template-columns: minmax(0, 1fr) minmax(280px, 320px);
@@ -2979,6 +3171,10 @@ a.btn[hidden] {
   border-bottom: none;
 }
 
+.account-page-header--minimal.account-page-header--cabinet.account-page-header--cabinet-balance {
+  padding-right: 0;
+}
+
 .account-page--minimal.account-page--cabinet .account-title {
   margin-bottom: 8px;
   font-size: clamp(1.45rem, 2.8vw, 1.85rem);
@@ -3034,8 +3230,7 @@ a.btn[hidden] {
 }
 
 .account-dash,
-.account-section,
-#profile {
+.account-section {
   scroll-margin-top: 96px;
 }
 
@@ -3677,22 +3872,131 @@ a.btn[hidden] {
 }
 
 .account-page--minimal.account-page--cabinet .account-order {
-  padding: 18px 18px 16px;
-  margin-bottom: 14px;
-  border-radius: 14px;
+  padding: 11px 12px 10px;
+  margin-bottom: 10px;
+  border-radius: 12px;
   border: 1px solid rgba(255, 255, 255, 0.08);
   background: linear-gradient(165deg, rgba(20, 22, 32, 0.95), rgba(8, 9, 14, 0.75));
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.22);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.18);
 }
 
 .account-page--minimal.account-page--cabinet .account-order:last-child {
   margin-bottom: 0;
 }
 
+.account-page--cabinet .account-order-head {
+  margin-bottom: 4px;
+  align-items: center;
+}
+
+.account-page--cabinet .account-order-id {
+  font-size: 0.68rem;
+}
+
+.account-page--cabinet .account-order-total {
+  font-size: 0.88rem;
+}
+
+.account-page--cabinet .account-status-pill {
+  padding: 3px 8px;
+  font-size: 0.62rem;
+}
+
+.account-page--cabinet .account-deal-pair-hint {
+  margin: 0 0 6px;
+  font-size: 0.68rem;
+  line-height: 1.3;
+  cursor: help;
+}
+
+.account-page--cabinet .account-deal-pair-hint code {
+  font-size: 0.62rem;
+}
+
+.account-page--cabinet .account-order-meta {
+  margin: 0 0 5px;
+  font-size: 0.68rem;
+}
+
+.account-page--cabinet .account-order-items {
+  margin-top: 2px;
+  padding-left: 14px;
+  font-size: 0.76rem;
+  line-height: 1.35;
+}
+
+.account-page--cabinet .account-order-items li {
+  margin-bottom: 2px;
+}
+
+.account-page--cabinet .account-order-wait {
+  margin: 5px 0 0;
+  font-size: 0.68rem;
+  line-height: 1.35;
+}
+
+.account-page--cabinet .account-order-buyer-ref {
+  margin: 0 0 5px;
+  font-size: 0.68rem;
+  line-height: 1.3;
+}
+
+.account-page--cabinet .account-complete-btn {
+  margin-top: 8px;
+  padding: 8px 12px;
+  font-size: 0.78rem;
+}
+
 .account-page--minimal.account-page--cabinet .deal-track {
-  border-radius: 12px;
+  border-radius: 10px;
   border-color: rgba(255, 255, 255, 0.08);
   background: rgba(0, 0, 0, 0.35);
+}
+
+.account-page--cabinet .deal-track.deal-track--compact {
+  margin: 5px 0 6px;
+  padding: 5px 4px 6px;
+  gap: 0 2px;
+  flex-wrap: nowrap;
+  justify-content: space-between;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+}
+
+.account-page--cabinet .deal-track--compact .deal-track-step {
+  flex: 1 0 auto;
+  min-width: 0;
+  max-width: 72px;
+  gap: 2px;
+}
+
+.account-page--cabinet .deal-track--compact .deal-track-dot {
+  width: 6px;
+  height: 6px;
+  border-width: 1px;
+}
+
+.account-page--cabinet .deal-track-step.is-current .deal-track-dot {
+  box-shadow: 0 0 0 2px rgba(240, 193, 76, 0.22);
+}
+
+.account-page--cabinet .deal-track--compact .deal-track-short {
+  font-size: 8px;
+  line-height: 1.1;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.account-page--cabinet .deal-track-hint {
+  display: none !important;
+}
+
+.account-page--cabinet .deal-track--cancelled.deal-track--compact {
+  margin: 5px 0 6px;
+  padding: 6px 8px;
 }
 
 .account-order:last-child {
@@ -7572,7 +7876,7 @@ body.drawer-open {
 }
 
 .auth-title {
-  margin: 0 0 8px;
+  margin: 0 0 18px;
   font-family: var(--font-display);
   font-size: 1.45rem;
   font-weight: 700;
@@ -7641,13 +7945,17 @@ body.drawer-open {
 }
 
 .auth-steam-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 18px;
   margin-top: 18px;
   padding-top: 18px;
   border-top: 1px solid var(--border);
 }
 
 .auth-steam-sep {
-  margin: 0 0 10px;
+  margin: 0;
   font-size: 0.75rem;
   font-weight: 600;
   text-transform: uppercase;
@@ -7684,12 +7992,20 @@ body.drawer-open {
 }
 
 .btn-steam-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  flex-shrink: 0;
+}
+
+.btn-steam-svg {
+  display: block;
   width: 20px;
   height: 20px;
-  border-radius: 4px;
-  flex-shrink: 0;
-  background: linear-gradient(135deg, #1b2838 0%, #66c0f4 100%);
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.12);
+  color: #66c0f4;
+  filter: drop-shadow(0 0 6px rgba(102, 192, 244, 0.35));
 }
 
 .auth-steam-hint {

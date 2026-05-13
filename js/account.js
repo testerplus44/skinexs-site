@@ -48,8 +48,6 @@
   var topupModalBalance = document.getElementById("topupModalBalance");
   var topupYooSteps = document.getElementById("topupYooSteps");
   var topupAmountInput = document.getElementById("topupAmount");
-  var useYooKassaTopup = false;
-
   var traderApplyModal = document.getElementById("traderApplyModal");
   var traderApplyBackdrop = document.getElementById("traderApplyBackdrop");
   var closeTraderApplyBtn = document.getElementById("closeTraderApply");
@@ -64,18 +62,8 @@
   }
 
   function updateBalanceHints() {
-    var hint = document.getElementById("accountBalanceHint");
     var mh = document.getElementById("topupModalHint");
     if (window.SKINEX_USE_SERVER_API) {
-      if (hint) {
-        var hintLong = useYooKassaTopup
-          ? "Баланс на сервере. Пополнение — через ЮKassa (безопасная оплата)."
-          : "Баланс на сервере. Пополнение через ЮKassa. Если оплата не открывается — обновите страницу и проверьте, что запущен API (npm start в папке server).";
-        hint.textContent = useYooKassaTopup
-          ? "ЮKassa · баланс на сервере. Списание при заказах."
-          : "ЮKassa: при ошибке оплаты — npm start в папке server.";
-        hint.title = hintLong;
-      }
       if (mh) {
         mh.textContent =
           "После нажатия кнопки вы перейдёте на страницу ЮKassa. После успешной оплаты откроется кабинет с обновлённым балансом.";
@@ -83,11 +71,6 @@
       if (topupYooSteps) topupYooSteps.hidden = false;
       if (topupSubmitBtn) topupSubmitBtn.textContent = "Перейти к оплате в ЮKassa";
     } else {
-      if (hint) {
-        hint.textContent =
-          "Списание при оплате заказов. Локальный режим — демо-зачисление только в этом браузере.";
-        hint.title = "";
-      }
       if (mh) mh.textContent = "Сумма будет добавлена к балансу только в этом браузере (без реальной оплаты).";
       if (topupYooSteps) topupYooSteps.hidden = true;
       if (topupSubmitBtn) topupSubmitBtn.textContent = "Пополнить (демо)";
@@ -96,7 +79,6 @@
 
   function syncBalanceFromServer() {
     if (!window.SKINEX_USE_SERVER_API || !Auth || !Auth.isLoggedIn || !Auth.isLoggedIn()) {
-      useYooKassaTopup = false;
       updateBalanceHints();
       return Promise.resolve(null);
     }
@@ -111,12 +93,10 @@
         if (data && data.ok && data.user && Auth.syncSessionFromServerUser) {
           Auth.syncSessionFromServerUser(data.user);
         }
-        useYooKassaTopup = !!(data && data.yookassaTopup);
         updateBalanceHints();
         return data;
       })
       .catch(function () {
-        useYooKassaTopup = false;
         updateBalanceHints();
         return null;
       });
@@ -175,11 +155,9 @@
     }
     if (window.SKINEX_USE_SERVER_API && A.fetchOrdersFromServer) {
       A.fetchOrdersFromServer().finally(function () {
-        renderAccountStats();
         renderOrders();
       });
     } else {
-      renderAccountStats();
       renderOrders();
     }
   }
@@ -224,16 +202,16 @@
   function dealPairHintHtml(o, perspective) {
     var did = A.getDealId ? A.getDealId(o) : String((o && o.id) || "");
     if (!did) return "";
-    var p =
+    var full =
       perspective === "trader"
         ? "У покупателя тот же номер и статус — одна сделка в системе."
         : "Исполнитель (трейдер или площадка) видит ту же сделку по этому ID — статус общий.";
     return (
-      '<p class="account-deal-pair-hint">ID сделки: <code>' +
+      '<p class="account-deal-pair-hint" title="' +
+      escapeHtml(full) +
+      '">ID сделки: <code>' +
       escapeHtml(did) +
-      "</code>. " +
-      escapeHtml(p) +
-      "</p>"
+      "</code></p>"
     );
   }
 
@@ -503,43 +481,6 @@
     );
   }
 
-  function renderAccountStats() {
-    var grid = document.getElementById("accountStatsGrid");
-    if (!grid) return;
-    var all = A.getBuyerOrders ? A.getBuyerOrders() : A.getOrders();
-    var active = all.filter(function (o) {
-      return A.isOrderActive ? A.isOrderActive(o) : false;
-    });
-    var archived = all.filter(function (o) {
-      var s = dealStatusCanon(o.status);
-      return s === "COMPLETED" || s === "CANCELLED";
-    });
-    var sumAll = all.reduce(function (acc, o) {
-      return acc + (Number(o.total) || 0);
-    }, 0);
-    grid.innerHTML =
-      '<div class="account-stat-cell">' +
-      '<span class="account-stat-value">' +
-      String(all.length) +
-      "</span>" +
-      '<span class="account-stat-label">Заказов</span></div>' +
-      '<div class="account-stat-cell">' +
-      '<span class="account-stat-value">' +
-      String(active.length) +
-      "</span>" +
-      '<span class="account-stat-label">Активных</span></div>' +
-      '<div class="account-stat-cell">' +
-      '<span class="account-stat-value">' +
-      formatPrice(sumAll) +
-      "</span>" +
-      '<span class="account-stat-label">Оборот</span></div>' +
-      '<div class="account-stat-cell account-stat-cell--muted">' +
-      '<span class="account-stat-value">' +
-      String(archived.length) +
-      "</span>" +
-      '<span class="account-stat-label">В архиве</span></div>';
-  }
-
   function renderIdentity() {
     var dl = document.getElementById("accountIdentityDl");
     if (!dl || !Auth.getSession) return;
@@ -615,7 +556,6 @@
             if (ret && ret.ok) {
               renderOrders();
               renderBalance();
-              renderAccountStats();
             } else if (window.alert) window.alert((ret && ret.message) || "Не удалось подтвердить.");
           }
           if (r && typeof r.then === "function") {
@@ -667,7 +607,6 @@
           function applyResult(ret) {
             if (ret && ret.ok) {
               renderOrders();
-              renderAccountStats();
             } else if (window.alert) window.alert((ret && ret.message) || "Не удалось обновить статус.");
           }
           if (r && typeof r.then === "function") {
@@ -754,23 +693,8 @@
 
   function renderRoleNote() {
     var el = document.getElementById("accountRoleNote");
-    var pill = document.getElementById("accountRolePill");
-    var navTrader = document.getElementById("accountNavTrader");
     var sess = Auth.getSession();
     var r = sess && sess.role;
-    var pillText = { user: "Клиент", trader: "Трейдер", manager: "Менеджер" };
-    if (pill) {
-      if (r && pillText[r]) {
-        pill.hidden = false;
-        pill.textContent = pillText[r];
-      } else {
-        pill.hidden = true;
-        pill.textContent = "";
-      }
-    }
-    if (navTrader) {
-      navTrader.hidden = !(Auth.isTrader && Auth.isTrader());
-    }
     if (!el) return;
     if (r === "manager") {
       el.hidden = false;
@@ -945,7 +869,6 @@
       }
       if (r.ok) {
         renderBalance();
-        renderAccountStats();
         var Sn = window.SkinexNotifications;
         if (Sn && typeof Sn.pushLocal === "function") {
           Sn.pushLocal({
