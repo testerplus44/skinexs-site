@@ -9,6 +9,10 @@ const { audit } = require("../lib/audit");
 const { enqueue, notifyInApp, notifyStaffInApp } = require("../lib/notify");
 const { verifySteamQueryString } = require("../lib/steam-openid");
 const yk = require("../lib/yookassa");
+const avatarix = require("../lib/avatarix");
+const steamTopupSettings = require("../lib/steam-topup-settings");
+const steamTopupEvents = require("../lib/steam-topup-events");
+const steamKeysDelivery = require("../lib/steam-keys-delivery");
 
 const router = express.Router();
 
@@ -159,6 +163,75 @@ function finalizeTopupFromPayment(db, payment) {
   return { ok: true, userId: row.user_id, amountRub };
 }
 
+/** Зафиксировать оплату заказа ключей (выгодное пополнение) и поставить в очередь вебхук боту. */
+function finalizeSteamKeysOrderFromPayment(db, payment) {
+  const pid = payment && payment.id ? String(payment.id) : "";
+  const meta = (payment && payment.metadata) || {};
+  if (!pid) return { ok: false, reason: "no_id" };
+  if (String(meta.kind || "") !== "steam_keys_order") return { ok: false, reason: "not_steam_keys" };
+  const orderId = String(meta.steam_keys_order_id || "").trim();
+  if (!orderId) return { ok: false, reason: "no_order" };
+
+  const row = db.prepare("SELECT * FROM steam_keys_orders WHERE id = ?").get(orderId);
+  if (!row) return { ok: false, reason: "order_not_found" };
+  if (row.status === "succeeded") return { ok: true, already: true, orderId };
+  if (payment.status !== "succeeded") return { ok: false, reason: "not_succeeded" };
+
+  const amountRub = rubFromYooAmount(payment.amount);
+  if (amountRub < 1 || amountRub !== row.amount_rub) {
+    return { ok: false, reason: "amount_mismatch" };
+  }
+
+  const run = () => {
+    db.prepare(
+      "UPDATE steam_keys_orders SET status = 'succeeded', yookassa_payment_id = ?, updated_at = ? WHERE id = ?",
+    ).run(pid, Date.now(), orderId);
+    db.prepare(
+      "INSERT INTO payments (id, order_id, provider, external_id, amount, status, json, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+    ).run(
+      uid("pay_"),
+      orderId,
+      "yookassa",
+      pid,
+      amountRub,
+      "succeeded",
+      JSON.stringify({ steamKeysOrderId: orderId, yookassaPaymentId: pid }),
+      Date.now(),
+    );
+  };
+  db.transaction(run)();
+
+  try {
+    steamTopupEvents.insertSteamTopupEvent({
+      method: "keys",
+      kind: "yookassa_succeeded",
+      userId: row.user_id,
+      steamRef: row.trade_url,
+      keyCount: row.key_count,
+      amountSteamRub: row.amount_steam_estimate_rub,
+      amountSiteRub: row.amount_rub,
+      partnerTxId: pid,
+      partnerOk: true,
+      payMethod: row.pay_method,
+    });
+  } catch (e) {
+    console.error("[steam_topup_events keys yookassa]", e.message || e);
+  }
+  try {
+    notifyInApp(row.user_id, {
+      kind: "steam_keys",
+      title: "Оплата ключей принята",
+      body: `Заказ ${row.key_count} шт. Отправка по трейд-ссылке обрабатывается.`,
+      link: "/steam-topup.html",
+    });
+  } catch (e) {
+    console.error("[notifyInApp steam keys]", e.message || e);
+  }
+
+  steamKeysDelivery.queueDeliveryAfterPayment(orderId);
+  return { ok: true, already: false, orderId, userId: row.user_id, amountRub };
+}
+
 function setSessionFromUser(req, row) {
   req.session.userId = row.id;
   req.session.role = row.role;
@@ -185,6 +258,7 @@ router.get("/auth/me", (req, res) => {
   return res.json({
     ok: true,
     yookassaTopup: yk.isConfigured(),
+    yookassaSteamKeys: yk.isConfigured(),
     user: Object.assign({}, formatUserRow(row), { traderBanned: !!row.trader_banned }),
   });
 });
@@ -267,6 +341,85 @@ router.post("/auth/logout", (req, res) => {
   });
 });
 
+const RESET_TOKEN_BYTES = 32;
+const RESET_EXPIRES_MS = 60 * 60 * 1000;
+
+function sha256hex(s) {
+  return crypto.createHash("sha256").update(String(s), "utf8").digest("hex");
+}
+
+/** Одинаковый ответ при отсутствии пользователя — без утечки существования email. */
+const FORGOT_PASSWORD_OK_MESSAGE =
+  "Если указанный email зарегистрирован и для него включён вход по паролю, на него отправлена ссылка для сброса. Проверьте почту (и папку «Спам»).";
+
+router.post("/auth/forgot-password", (req, res) => {
+  const email = normEmail(req.body && req.body.email);
+  const okPayload = { ok: true, message: FORGOT_PASSWORD_OK_MESSAGE };
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    return res.status(400).json({ ok: false, message: "Некорректный email." });
+  }
+  const adminEmail = (process.env.SKINEX_ADMIN_EMAIL || "admin@skinex.local").toLowerCase();
+  if (email === adminEmail) {
+    return res.json(okPayload);
+  }
+  const db = getDb();
+  const row = db.prepare("SELECT id, email, password_hash FROM users WHERE email = ?").get(email);
+  if (!row || !row.password_hash) {
+    audit(req, "auth.forgot_password_miss", email);
+    return res.json(okPayload);
+  }
+  const rawToken = crypto.randomBytes(RESET_TOKEN_BYTES).toString("hex");
+  const tokenHash = sha256hex(rawToken);
+  const now = Date.now();
+  const expiresAt = now + RESET_EXPIRES_MS;
+  db.prepare("DELETE FROM password_reset_tokens WHERE user_id = ?").run(row.id);
+  const prId = uid("prt_");
+  db.prepare(
+    "INSERT INTO password_reset_tokens (id, user_id, token_hash, expires_at, created_at) VALUES (?, ?, ?, ?, ?)",
+  ).run(prId, row.id, tokenHash, expiresAt, now);
+  const origin = publicOrigin(req);
+  const link = `${origin}/reset-password.html?token=${encodeURIComponent(rawToken)}`;
+  const text =
+    "Здравствуйте.\n\nЧтобы задать новый пароль для аккаунта Skinexs, перейдите по ссылке (действует 1 час):\n\n" +
+    link +
+    "\n\nЕсли вы не запрашивали сброс, проигнорируйте это письмо.\n";
+  enqueue(row.id, "email", {
+    to: row.email,
+    subject: "Skinexs — сброс пароля",
+    text,
+  });
+  audit(req, "auth.forgot_password", email);
+  if (process.env.SKINEX_LOG_PASSWORD_RESET_LINK === "1") {
+    console.log("[password-reset] link for", email, link);
+  }
+  res.json(okPayload);
+});
+
+router.post("/auth/reset-password", (req, res) => {
+  const token = String((req.body && req.body.token) || "").trim();
+  const password = req.body && req.body.password;
+  if (!token || token.length < 64) {
+    return res.status(400).json({ ok: false, message: "Ссылка недействительна или устарела." });
+  }
+  if (!password || String(password).length < 6) {
+    return res.status(400).json({ ok: false, message: "Пароль не короче 6 символов." });
+  }
+  const tokenHash = sha256hex(token);
+  const db = getDb();
+  const row = db.prepare("SELECT * FROM password_reset_tokens WHERE token_hash = ?").get(tokenHash);
+  if (!row || row.expires_at < Date.now()) {
+    return res.status(400).json({ ok: false, message: "Ссылка недействительна или устарела. Запросите новую." });
+  }
+  const hash = bcrypt.hashSync(String(password), 10);
+  const run = () => {
+    db.prepare("UPDATE users SET password_hash = ? WHERE id = ?").run(hash, row.user_id);
+    db.prepare("DELETE FROM password_reset_tokens WHERE user_id = ?").run(row.user_id);
+  };
+  db.transaction(run)();
+  audit(req, "auth.reset_password", row.user_id);
+  res.json({ ok: true, message: "Пароль обновлён. Можно войти с новым паролем." });
+});
+
 router.post("/auth/steam/session", async (req, res) => {
   try {
     const q = req.body && req.body.query;
@@ -315,6 +468,57 @@ router.post("/auth/steam/session", async (req, res) => {
       user: formatUserRow(row),
     });
   } catch (e) {
+    res.status(500).json({ ok: false, message: String(e.message || e) });
+  }
+});
+
+router.get("/public/steam-topup-settings", (req, res) => {
+  try {
+    const s = steamTopupSettings.getSteamTopupSettings();
+    res.json({
+      ok: true,
+      instantCommissionPct: s.instantCommissionPct,
+      keysPriceRub: s.keysPriceRub,
+      keysClientProfitPct: s.keysClientProfitPct,
+    });
+  } catch (e) {
+    res.status(500).json({ ok: false, message: String(e.message || e) });
+  }
+});
+
+/** Лог намерения оплатить выгодное пополнение (ключи) — для дашборда; не подтверждение оплаты. */
+router.post("/public/steam-topup/keys-intent", (req, res) => {
+  try {
+    const b = req.body || {};
+    const keyCount = Math.round(Number(b.keyCount));
+    const amountSiteRub = Math.round(Number(b.amountSiteRub));
+    const amountSteamRub = Math.round(Number(b.amountSteamRub));
+    const tradeUrl = String(b.tradeUrl || "").trim().slice(0, 500);
+    if (!Number.isFinite(keyCount) || keyCount < 1 || keyCount > 99) {
+      return res.status(400).json({ ok: false, message: "keyCount от 1 до 99." });
+    }
+    if (!Number.isFinite(amountSiteRub) || amountSiteRub < 1 || amountSiteRub > 50_000_000) {
+      return res.status(400).json({ ok: false, message: "Некорректная сумма на сайте." });
+    }
+    if (!Number.isFinite(amountSteamRub) || amountSteamRub < 1 || amountSteamRub > 50_000_000) {
+      return res.status(400).json({ ok: false, message: "Некорректная оценка Steam." });
+    }
+    const userId = req.session && req.session.userId ? String(req.session.userId) : null;
+    steamTopupEvents.insertSteamTopupEvent({
+      method: "keys",
+      kind: "checkout_intent",
+      userId,
+      steamRef: tradeUrl,
+      keyCount,
+      amountSteamRub,
+      amountSiteRub,
+      partnerTxId: null,
+      partnerOk: null,
+      payMethod: b.payMethod != null ? String(b.payMethod).slice(0, 16) : null,
+    });
+    res.json({ ok: true });
+  } catch (e) {
+    console.error("[keys-intent]", e.message || e);
     res.status(500).json({ ok: false, message: String(e.message || e) });
   }
 });
@@ -1027,6 +1231,66 @@ router.get("/admin/audit", requireAdmin, (req, res) => {
   res.json(rows);
 });
 
+router.get("/admin/steam-topup-settings", requireAdmin, (req, res) => {
+  try {
+    res.json({ ok: true, settings: steamTopupSettings.getSteamTopupSettings() });
+  } catch (e) {
+    res.status(500).json({ ok: false, message: String(e.message || e) });
+  }
+});
+
+router.put("/admin/steam-topup-settings", requireAdmin, (req, res) => {
+  const b = req.body || {};
+  try {
+    const settings = steamTopupSettings.updateSteamTopupSettings({
+      instantCommissionPct: b.instantCommissionPct,
+      keysPriceRub: b.keysPriceRub,
+      keysClientProfitPct: b.keysClientProfitPct,
+    });
+    audit(req, "admin.steam_topup_settings", JSON.stringify(settings));
+    res.json({ ok: true, settings });
+  } catch (e) {
+    res.status(500).json({ ok: false, message: String(e.message || e) });
+  }
+});
+
+router.get("/admin/steam-topup-events", requireAdmin, (req, res) => {
+  try {
+    const fromMs = req.query.from != null ? parseInt(String(req.query.from), 10) : undefined;
+    const toMs = req.query.to != null ? parseInt(String(req.query.to), 10) : undefined;
+    const method = String(req.query.method || "all");
+    const limit = req.query.limit != null ? parseInt(String(req.query.limit), 10) : undefined;
+    const offset = req.query.offset != null ? parseInt(String(req.query.offset), 10) : undefined;
+    const out = steamTopupEvents.querySteamTopupEventsAdmin({
+      fromMs: Number.isFinite(fromMs) ? fromMs : undefined,
+      toMs: Number.isFinite(toMs) ? toMs : undefined,
+      method,
+      limit: Number.isFinite(limit) ? limit : undefined,
+      offset: Number.isFinite(offset) ? offset : undefined,
+    });
+    res.json({ ok: true, ...out });
+  } catch (e) {
+    res.status(500).json({ ok: false, message: String(e.message || e) });
+  }
+});
+
+router.get("/admin/steam-keys-orders", requireAdmin, (req, res) => {
+  try {
+    const limit = Math.min(500, Math.max(1, parseInt(String(req.query.limit || "200"), 10) || 200));
+    const db = getDb();
+    const rows = db
+      .prepare(
+        `SELECT id, user_id, key_count, amount_rub, amount_steam_estimate_rub, trade_url, pay_method,
+          yookassa_payment_id, status, delivery_state, delivery_error, created_at, updated_at
+        FROM steam_keys_orders ORDER BY created_at DESC LIMIT ?`,
+      )
+      .all(limit);
+    res.json({ ok: true, rows });
+  } catch (e) {
+    res.status(500).json({ ok: false, message: String(e.message || e) });
+  }
+});
+
 router.post("/admin/broadcast", requireAdmin, (req, res) => {
   const title = String((req.body && req.body.title) || "").trim();
   const body = String((req.body && req.body.body) || "").trim();
@@ -1172,6 +1436,155 @@ router.post("/payments/yookassa/complete-check", requireAuth, async (req, res) =
   }
 });
 
+// ——— ЮKassa: выгодное пополнение (ключи по трейд-ссылке) ———
+
+router.post("/payments/yookassa/steam-keys/create", requireAuth, async (req, res) => {
+  if (!yk.isConfigured()) {
+    return res.status(503).json({
+      ok: false,
+      message: "Платежи ЮKassa не настроены. Задайте YOOKASSA_SHOP_ID и YOOKASSA_SECRET_KEY.",
+    });
+  }
+  const b = req.body || {};
+  const keyCount = Math.round(Number(b.keyCount));
+  if (!Number.isFinite(keyCount) || keyCount < 1 || keyCount > 99) {
+    return res.status(400).json({ ok: false, message: "Количество ключей: от 1 до 99." });
+  }
+  const tradeCheck = steamKeysDelivery.validateSteamTradeUrl(b.tradeUrl);
+  if (!tradeCheck.ok) {
+    return res.status(400).json({ ok: false, message: tradeCheck.message });
+  }
+  const payMethod = b.payMethod != null ? String(b.payMethod).slice(0, 16) : null;
+
+  let settings;
+  try {
+    settings = steamTopupSettings.getSteamTopupSettings();
+  } catch (e) {
+    return res.status(500).json({ ok: false, message: String(e.message || e) });
+  }
+  const price = Math.max(1, Math.round(Number(settings.keysPriceRub) || 156));
+  const profitPct = Number(settings.keysClientProfitPct);
+  const amountRub = keyCount * price;
+  if (amountRub < 10 || amountRub > 500_000) {
+    return res.status(400).json({ ok: false, message: "Сумма заказа вне допустимого диапазона." });
+  }
+  const steamEst = Math.round(amountRub * (1 + (Number.isFinite(profitPct) ? profitPct : 0) / 100));
+
+  const db = getDb();
+  const orderId = uid("stk_");
+  const returnUrl = `${publicOrigin(req)}/steam-topup.html?steam_keys_order=${encodeURIComponent(orderId)}`;
+  const now = Date.now();
+
+  db.prepare(
+    `INSERT INTO steam_keys_orders (
+      id, user_id, key_count, amount_rub, amount_steam_estimate_rub, trade_url, pay_method,
+      yookassa_payment_id, status, delivery_state, delivery_error, created_at, updated_at
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, NULL, 'pending', 'none', NULL, ?, ?)`,
+  ).run(
+    orderId,
+    req.session.userId,
+    keyCount,
+    amountRub,
+    steamEst,
+    tradeCheck.value,
+    payMethod,
+    now,
+    now,
+  );
+
+  try {
+    const payment = await yk.createPayment({
+      amount: { value: amountRub.toFixed(2), currency: "RUB" },
+      capture: true,
+      confirmation: { type: "redirect", return_url: returnUrl },
+      description: `Skinexs: ключи Steam ×${keyCount} (${amountRub} ₽)`,
+      metadata: {
+        steam_keys_order_id: orderId,
+        user_id: String(req.session.userId),
+        kind: "steam_keys_order",
+      },
+    });
+    const confUrl = payment.confirmation && payment.confirmation.confirmation_url;
+    if (!confUrl) {
+      db.prepare("DELETE FROM steam_keys_orders WHERE id = ?").run(orderId);
+      return res.status(500).json({ ok: false, message: "ЮKassa не вернула ссылку на оплату." });
+    }
+    db.prepare("UPDATE steam_keys_orders SET yookassa_payment_id = ?, updated_at = ? WHERE id = ?").run(
+      payment.id,
+      Date.now(),
+      orderId,
+    );
+    audit(req, "yookassa.steam_keys.create", `${orderId}:${payment.id}`);
+    res.json({
+      ok: true,
+      confirmationUrl: confUrl,
+      steamKeysOrderId: orderId,
+      paymentId: payment.id,
+      amountRub,
+      keyCount,
+    });
+  } catch (e) {
+    db.prepare("DELETE FROM steam_keys_orders WHERE id = ?").run(orderId);
+    const msg = e && e.message ? String(e.message) : "Ошибка ЮKassa";
+    res.status(500).json({ ok: false, message: msg });
+  }
+});
+
+router.post("/payments/yookassa/steam-keys/complete-check", requireAuth, async (req, res) => {
+  const orderId = String((req.body && req.body.steamKeysOrderId) || "").trim();
+  if (!orderId) return res.status(400).json({ ok: false, message: "Нет steamKeysOrderId." });
+  const db = getDb();
+  const row = db.prepare("SELECT * FROM steam_keys_orders WHERE id = ?").get(orderId);
+  if (!row || row.user_id !== req.session.userId) {
+    return res.status(404).json({ ok: false, message: "Заказ не найден." });
+  }
+  if (row.status === "succeeded") {
+    const r2 = db.prepare("SELECT delivery_state, delivery_error FROM steam_keys_orders WHERE id = ?").get(orderId);
+    return res.json({
+      ok: true,
+      already: true,
+      deliveryState: r2 ? r2.delivery_state : row.delivery_state,
+      deliveryError: r2 && r2.delivery_error,
+      keyCount: row.key_count,
+      amountRub: row.amount_rub,
+    });
+  }
+  if (!row.yookassa_payment_id) {
+    return res.json({ ok: false, message: "Платёж ещё не создан." });
+  }
+  if (!yk.isConfigured()) {
+    return res.status(503).json({ ok: false, message: "ЮKassa не настроена." });
+  }
+  try {
+    const pay = await yk.getPayment(row.yookassa_payment_id);
+    const fin = finalizeSteamKeysOrderFromPayment(db, pay);
+    if (fin.ok) {
+      const r2 = db.prepare("SELECT delivery_state, delivery_error FROM steam_keys_orders WHERE id = ?").get(orderId);
+      if (!fin.already) {
+        audit(req, "yookassa.steam_keys.complete", orderId);
+      }
+      return res.json({
+        ok: true,
+        already: !!fin.already,
+        deliveryState: r2 ? r2.delivery_state : "none",
+        deliveryError: r2 && r2.delivery_error,
+        keyCount: row.key_count,
+        amountRub: row.amount_rub,
+      });
+    }
+    if (fin.reason === "not_succeeded") {
+      return res.json({
+        ok: false,
+        pending: true,
+        message: "Оплата ещё не прошла. Обновите страницу через минуту.",
+      });
+    }
+    return res.status(400).json({ ok: false, message: fin.reason || "Не удалось подтвердить заказ." });
+  } catch (e) {
+    res.status(500).json({ ok: false, message: String(e.message || e) });
+  }
+});
+
 router.post("/payments/yookassa/webhook", async (req, res) => {
   try {
     const body = req.body && typeof req.body === "object" ? req.body : {};
@@ -1182,9 +1595,13 @@ router.post("/payments/yookassa/webhook", async (req, res) => {
     }
     const pay = await yk.getPayment(payId);
     const db = getDb();
-    const fin = finalizeTopupFromPayment(db, pay);
-    if (fin.ok && !fin.already) {
+    const finTopup = finalizeTopupFromPayment(db, pay);
+    const finKeys = finalizeSteamKeysOrderFromPayment(db, pay);
+    if (finTopup.ok && !finTopup.already) {
       audit(req, "yookassa.webhook", payId);
+    }
+    if (finKeys.ok && !finKeys.already) {
+      audit(req, "yookassa.webhook.steam_keys", payId);
     }
     res.status(200).json({ ok: true });
   } catch (e) {
@@ -1222,6 +1639,96 @@ router.post("/payments/webhook", (req, res) => {
   );
   audit(req, "payment.webhook", pid);
   res.json({ ok: true, id: pid });
+});
+
+/** Моментальное пополнение Steam через Avatarix (см. https://apidoc.avatarix.net/docs/payment/). */
+router.post("/partner/avatarix/steam/pay", async (req, res) => {
+  if (!avatarix.isConfigured()) {
+    return res.status(503).json({
+      ok: false,
+      message:
+        "Интеграция Avatarix не настроена. Укажите AVATARIX_AGENT_ID, AVATARIX_AGENT_PASSWORD, AVATARIX_SERVICE_STEAM и при необходимости AVATARIX_BASE_URL.",
+    });
+  }
+  const account = String((req.body && req.body.steamLogin) || (req.body && req.body.account) || "").trim();
+  const amountRub = Math.round(Number((req.body && req.body.amountRub) != null ? req.body.amountRub : NaN));
+  const transactionId = (req.body && req.body.transactionId && String(req.body.transactionId).trim()) || "";
+  if (!/^[a-zA-Z0-9_]{3,32}$/.test(account)) {
+    return res.status(400).json({ ok: false, message: "Укажите корректный логин Steam (латиница, цифры, _)." });
+  }
+  if (!Number.isFinite(amountRub) || amountRub < 100 || amountRub > 500000) {
+    return res.status(400).json({ ok: false, message: "Сумма от 100 до 500 000 ₽." });
+  }
+  const userId = req.session && req.session.userId ? String(req.session.userId) : null;
+  const payMethod = req.body && req.body.payMethod != null ? String(req.body.payMethod).slice(0, 16) : null;
+  const settings = steamTopupSettings.getSteamTopupSettings();
+  const amountSiteRub = Math.round(amountRub * (1 + settings.instantCommissionPct / 100));
+
+  function logInstantEvent(partnerTx, okVal) {
+    try {
+      steamTopupEvents.insertSteamTopupEvent({
+        method: "instant",
+        kind: "avatarix_pay",
+        userId,
+        steamRef: account,
+        keyCount: null,
+        amountSteamRub: amountRub,
+        amountSiteRub,
+        partnerTxId: partnerTx,
+        partnerOk: okVal,
+        payMethod,
+      });
+    } catch (err) {
+      console.error("[steam_topup_events instant]", err.message || err);
+    }
+  }
+
+  try {
+    const out = await avatarix.requestPayment({
+      account,
+      amountRub,
+      transactionId: transactionId || undefined,
+    });
+    const ok = avatarix.isSuccessResponse(out.data);
+    logInstantEvent(out.transactionId, ok);
+    audit(req, "avatarix.steam.pay", `${out.transactionId}:${account}:${amountRub}:${ok ? "ok" : "fail"}`);
+    res.json({
+      ok,
+      transactionId: out.transactionId,
+      avatarix: out.data,
+      message: (out.data && out.data.Message) || (ok ? "Операция принята." : "Ответ получен, проверьте статус."),
+    });
+  } catch (e) {
+    const code = e && e.code;
+    if (code === "NOT_CONFIGURED" || code === "BAD_TXN_ID") {
+      logInstantEvent(null, false);
+      return res.status(503).json({ ok: false, message: String(e.message || e) });
+    }
+    logInstantEvent(null, false);
+    console.error("[avatarix pay]", e.message || e);
+    res.status(502).json({ ok: false, message: String(e.message || "Ошибка связи с Avatarix.") });
+  }
+});
+
+router.post("/partner/avatarix/steam/status", async (req, res) => {
+  if (!avatarix.isConfigured()) {
+    return res.status(503).json({ ok: false, message: "Avatarix не настроен." });
+  }
+  const transactionId = String((req.body && req.body.transactionId) || "").trim();
+  if (!transactionId) return res.status(400).json({ ok: false, message: "Нет transactionId." });
+  try {
+    const out = await avatarix.requestStatus(transactionId);
+    const ok = avatarix.isSuccessResponse(out.data);
+    audit(req, "avatarix.steam.status", `${transactionId}:${ok ? "ok" : "pending"}`);
+    res.json({
+      ok,
+      transactionId: out.transactionId,
+      avatarix: out.data,
+    });
+  } catch (e) {
+    console.error("[avatarix status]", e.message || e);
+    res.status(502).json({ ok: false, message: String(e.message || "Ошибка связи с Avatarix.") });
+  }
 });
 
 module.exports = router;

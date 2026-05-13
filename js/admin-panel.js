@@ -35,6 +35,7 @@
   var tabBtnOrders = document.getElementById("adminTabBtnOrders");
   var tabBtnMarket = document.getElementById("adminTabBtnMarket");
   var tabBtnSite = document.getElementById("adminTabBtnSite");
+  var tabBtnSteam = document.getElementById("adminTabBtnSteam");
   var tabPanelDashboard = document.getElementById("adminTabDashboard");
   var tabPanelProducts = document.getElementById("adminTabProducts");
   var tabPanelUsers = document.getElementById("adminTabUsers");
@@ -42,6 +43,7 @@
   var tabPanelOrders = document.getElementById("adminTabOrders");
   var tabPanelMarket = document.getElementById("adminTabMarket");
   var tabPanelSite = document.getElementById("adminTabSite");
+  var tabPanelSteam = document.getElementById("adminTabSteam");
   var adminDashBoard = document.getElementById("adminDashBoard");
   var adminDashNote = document.getElementById("adminDashNote");
   var btnExportBackup = document.getElementById("btnExportBackup");
@@ -56,8 +58,10 @@
   var adminOrderModalTitle = document.getElementById("adminOrderModalTitle");
   var adminSiteForm = document.getElementById("adminSiteForm");
   var adminSiteFormNote = document.getElementById("adminSiteFormNote");
+  var adminSteamTopupForm = document.getElementById("adminSteamTopupForm");
+  var adminSteamTopupFormNote = document.getElementById("adminSteamTopupFormNote");
   var ADMIN_TAB_STORAGE = "skinex_admin_tab";
-  var TAB_KEYS = ["dashboard", "products", "filters", "users", "traders", "orders", "market", "site", "hints", "broadcast"];
+  var TAB_KEYS = ["dashboard", "products", "filters", "users", "traders", "orders", "market", "site", "steam", "hints", "broadcast"];
   var traderAppsCache = [];
   var traderAppDetailId = null;
 
@@ -103,6 +107,7 @@
       orders: { btn: tabBtnOrders, panel: tabPanelOrders },
       market: { btn: tabBtnMarket, panel: tabPanelMarket },
       site: { btn: tabBtnSite, panel: tabPanelSite },
+      steam: { btn: tabBtnSteam, panel: tabPanelSteam },
       hints: { btn: tabBtnHints, panel: tabPanelHints },
       broadcast: { btn: tabBtnBroadcast, panel: tabPanelBroadcast },
     };
@@ -125,6 +130,7 @@
     if (which === "orders") renderOrdersTable();
     if (which === "dashboard") renderDashboard();
     if (which === "site") loadSiteForm();
+    if (which === "steam") loadSteamTopupForm();
     if (which === "hints") renderHintsTable();
     if (which === "filters") renderSidebarMetaTables();
     if (which === "market") renderMarketTable();
@@ -170,6 +176,10 @@
   tabBtnSite &&
     tabBtnSite.addEventListener("click", function () {
       applyAdminTab("site");
+    });
+  tabBtnSteam &&
+    tabBtnSteam.addEventListener("click", function () {
+      applyAdminTab("steam");
     });
   tabBtnHints &&
     tabBtnHints.addEventListener("click", function () {
@@ -2224,6 +2234,222 @@
     if (adminSiteFormNote) adminSiteFormNote.textContent = "";
   }
 
+  function adminApiUrl(path) {
+    var base = window.SKINEX_API_BASE != null ? String(window.SKINEX_API_BASE).trim().replace(/\/?$/, "") : "";
+    if (!path || path.charAt(0) !== "/") path = "/" + (path || "");
+    return base + path;
+  }
+
+  function loadSteamTopupForm() {
+    if (!adminSteamTopupForm) return;
+    var note = adminSteamTopupFormNote;
+    if (note) {
+      note.textContent = "";
+      note.style.color = "";
+    }
+    if (!window.SKINEX_USE_SERVER_API) {
+      if (note) {
+        note.style.color = "#f87171";
+        note.textContent = "Настройки доступны только при работе через сервер API.";
+      }
+      loadSteamTopupDashboard();
+      return;
+    }
+    if (note) note.textContent = "Загрузка…";
+    fetch(adminApiUrl("/api/v1/admin/steam-topup-settings"), { credentials: "include" })
+      .then(function (res) {
+        return res.json().then(function (data) {
+          return { res: res, data: data };
+        });
+      })
+      .then(function (r) {
+        if (!r.res.ok || !r.data || !r.data.ok) {
+          throw new Error((r.data && r.data.message) || "Нет доступа или ошибка сервера.");
+        }
+        var s = r.data.settings || {};
+        var pct = document.getElementById("steamFormInstantPct");
+        var price = document.getElementById("steamFormKeyPrice");
+        var prof = document.getElementById("steamFormKeysProfitPct");
+        if (pct) pct.value = s.instantCommissionPct != null ? s.instantCommissionPct : 7;
+        if (price) price.value = s.keysPriceRub != null ? s.keysPriceRub : 156;
+        if (prof) prof.value = s.keysClientProfitPct != null ? s.keysClientProfitPct : 10;
+        if (note) note.textContent = "";
+      })
+      .catch(function (err) {
+        if (note) {
+          note.style.color = "#f87171";
+          note.textContent = err.message || "Ошибка загрузки.";
+        }
+      })
+      .finally(function () {
+        loadSteamTopupDashboard();
+      });
+  }
+
+  function toDatetimeLocal(ms) {
+    var d = new Date(ms);
+    function z(n) {
+      return n < 10 ? "0" + n : String(n);
+    }
+    return d.getFullYear() + "-" + z(d.getMonth() + 1) + "-" + z(d.getDate()) + "T" + z(d.getHours()) + ":" + z(d.getMinutes());
+  }
+
+  function formatRubSteamDash(n) {
+    var x = Math.round(Number(n) || 0);
+    return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, " ") + " ₽";
+  }
+
+  function renderSteamDashboard(data) {
+    var kpi = document.getElementById("steamDashKpi");
+    var tbody = document.getElementById("steamDashTableBody");
+    var badge = document.getElementById("steamDashRangeBadge");
+    var sur = data.summary || {};
+    var ins = sur.instant || {};
+    var keys = sur.keys || {};
+    var tot = sur.total || {};
+
+    if (badge) {
+      badge.textContent =
+        "Период: " +
+        new Date(data.fromMs).toLocaleString("ru-RU") +
+        " — " +
+        new Date(data.toMs).toLocaleString("ru-RU") +
+        " · записей: " +
+        (tot.count || 0);
+    }
+
+    function dashCard(lbl, val, hint) {
+      return (
+        '<div class="admin-dash-card"><span class="admin-dash-card-label">' +
+        escapeHtml(lbl) +
+        '</span><strong class="admin-dash-card-value">' +
+        val +
+        "</strong>" +
+        (hint ? '<span class="admin-dash-card-hint">' + escapeHtml(hint) + "</span>" : "") +
+        "</div>"
+      );
+    }
+
+    if (kpi) {
+      kpi.innerHTML =
+        dashCard("Моментальное: событий", String(ins.count || 0), "Запросы к партнёру") +
+        dashCard("Моментальное: сумма на сайте", formatRubSteamDash(ins.sumSiteRub || 0), "С учётом комиссии") +
+        dashCard("Моментальное: на Steam", formatRubSteamDash(ins.sumSteamRub || 0), "К зачислению") +
+        dashCard("Ключи: событий", String(keys.count || 0), "Переход в поддержку") +
+        dashCard("Ключи: сумма на сайте", formatRubSteamDash(keys.sumSiteRub || 0), "Расчёт при клике") +
+        dashCard("Ключи: оценка Steam", formatRubSteamDash(keys.sumSteamRub || 0), "По % профита") +
+        dashCard("Всего: на сайте", formatRubSteamDash(tot.sumSiteRub || 0), "") +
+        dashCard("Всего: на Steam (оценка)", formatRubSteamDash(tot.sumSteamRub || 0), "");
+    }
+
+    var rows = data.rows || [];
+    if (!tbody) return;
+    if (!rows.length) {
+      tbody.innerHTML = '<tr><td colspan="8" class="admin-dash-table-empty">Нет записей за выбранный период.</td></tr>';
+      return;
+    }
+    tbody.innerHTML = rows
+      .map(function (ev) {
+        var dt = new Date(ev.createdAt).toLocaleString("ru-RU");
+        var m = ev.method === "keys" ? "Ключи" : "Моментальное";
+        var ref = String(ev.steamRef || "").trim();
+        if (ref.length > 48) ref = ref.slice(0, 45) + "…";
+        var kc = ev.keyCount != null ? String(ev.keyCount) : "—";
+        var okc = ev.partnerOk === true ? "да" : ev.partnerOk === false ? "нет" : "—";
+        var tx = String(ev.partnerTxId || "").trim() || "—";
+        return (
+          "<tr><td>" +
+          escapeHtml(dt) +
+          "</td><td>" +
+          escapeHtml(m) +
+          "</td><td>" +
+          escapeHtml(ref) +
+          "</td><td>" +
+          escapeHtml(kc) +
+          "</td><td>" +
+          escapeHtml(formatRubSteamDash(ev.amountSteamRub)) +
+          "</td><td>" +
+          escapeHtml(formatRubSteamDash(ev.amountSiteRub)) +
+          "</td><td>" +
+          escapeHtml(tx) +
+          "</td><td>" +
+          escapeHtml(okc) +
+          "</td></tr>"
+        );
+      })
+      .join("");
+  }
+
+  function loadSteamTopupDashboard() {
+    var kpi = document.getElementById("steamDashKpi");
+    var tbody = document.getElementById("steamDashTableBody");
+    var note = document.getElementById("steamDashNote");
+    var fromInp = document.getElementById("steamDashFrom");
+    var toInp = document.getElementById("steamDashTo");
+    var methodSel = document.getElementById("steamDashMethod");
+    if (!fromInp || !toInp || !methodSel) return;
+    if (note) {
+      note.textContent = "";
+      note.style.color = "";
+    }
+    var now = Date.now();
+    if (!String(fromInp.value || "").trim()) fromInp.value = toDatetimeLocal(now - 30 * 86400000);
+    if (!String(toInp.value || "").trim()) toInp.value = toDatetimeLocal(now);
+
+    var fromMs = new Date(fromInp.value).getTime();
+    var toMs = new Date(toInp.value).getTime();
+    if (!isFinite(fromMs) || !isFinite(toMs)) {
+      if (note) {
+        note.style.color = "#f87171";
+        note.textContent = "Укажите корректный период (дата и время).";
+      }
+      return;
+    }
+    if (fromMs > toMs) {
+      var tmp = fromMs;
+      fromMs = toMs;
+      toMs = tmp;
+      fromInp.value = toDatetimeLocal(fromMs);
+      toInp.value = toDatetimeLocal(toMs);
+    }
+
+    if (!window.SKINEX_USE_SERVER_API) {
+      if (kpi) kpi.innerHTML = "";
+      if (tbody) tbody.innerHTML = '<tr><td colspan="8" class="admin-dash-table-empty">Включите серверный API.</td></tr>';
+      return;
+    }
+
+    if (tbody) tbody.innerHTML = '<tr><td colspan="8" class="admin-dash-table-empty">Загрузка…</td></tr>';
+
+    var qs =
+      "?from=" +
+      fromMs +
+      "&to=" +
+      toMs +
+      "&method=" +
+      encodeURIComponent(methodSel.value || "all") +
+      "&limit=250";
+    fetch(adminApiUrl("/api/v1/admin/steam-topup-events" + qs), { credentials: "include" })
+      .then(function (res) {
+        return res.json().then(function (d) {
+          return { res: res, d: d };
+        });
+      })
+      .then(function (r) {
+        if (!r.res.ok || !r.d || !r.d.ok) {
+          throw new Error((r.d && r.d.message) || "Ошибка");
+        }
+        renderSteamDashboard(r.d);
+      })
+      .catch(function (err) {
+        if (tbody) {
+          tbody.innerHTML =
+            '<tr><td colspan="8" class="admin-dash-table-empty">' + escapeHtml(err.message || "Ошибка") + "</td></tr>";
+        }
+        if (kpi) kpi.innerHTML = "";
+      });
+  }
+
   function exportBackupJson() {
     try {
       var payload = {
@@ -2291,6 +2517,84 @@
         adminSiteFormNote.style.color = "#86d759";
         adminSiteFormNote.textContent = "Сохранено. Обновите главную и другие страницы, чтобы увидеть тексты.";
       }
+    });
+
+  adminSteamTopupForm &&
+    adminSteamTopupForm.addEventListener("submit", function (e) {
+      e.preventDefault();
+      var note = adminSteamTopupFormNote;
+      if (note) {
+        note.textContent = "";
+        note.style.color = "";
+      }
+      if (!window.SKINEX_USE_SERVER_API) {
+        if (note) {
+          note.style.color = "#f87171";
+          note.textContent = "Включите серверный API.";
+        }
+        return;
+      }
+      var instantPct = parseFloat(String(document.getElementById("steamFormInstantPct").value || "0"));
+      var keyPrice = parseInt(String(document.getElementById("steamFormKeyPrice").value || "0"), 10);
+      var profitPct = parseFloat(String(document.getElementById("steamFormKeysProfitPct").value || "0"));
+      if (!isFinite(instantPct) || instantPct < 0 || instantPct > 100) {
+        if (note) {
+          note.style.color = "#f87171";
+          note.textContent = "Комиссия: число от 0 до 100.";
+        }
+        return;
+      }
+      if (!isFinite(keyPrice) || keyPrice < 1) {
+        if (note) {
+          note.style.color = "#f87171";
+          note.textContent = "Цена ключа: целое число от 1.";
+        }
+        return;
+      }
+      if (!isFinite(profitPct) || profitPct < 0 || profitPct > 500) {
+        if (note) {
+          note.style.color = "#f87171";
+          note.textContent = "Профит: число от 0 до 500.";
+        }
+        return;
+      }
+      fetch(adminApiUrl("/api/v1/admin/steam-topup-settings"), {
+        method: "PUT",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          instantCommissionPct: instantPct,
+          keysPriceRub: keyPrice,
+          keysClientProfitPct: profitPct,
+        }),
+      })
+        .then(function (res) {
+          return res.json().then(function (data) {
+            return { res: res, data: data };
+          });
+        })
+        .then(function (r) {
+          if (!r.res.ok || !r.data || !r.data.ok) {
+            throw new Error((r.data && r.data.message) || "Ошибка сохранения.");
+          }
+          if (note) {
+            note.style.color = "#86d759";
+            note.textContent = "Сохранено. Обновите страницу пополнения Steam.";
+          }
+          loadSteamTopupDashboard();
+        })
+        .catch(function (err) {
+          if (note) {
+            note.style.color = "#f87171";
+            note.textContent = err.message || "Ошибка сети.";
+          }
+        });
+    });
+
+  var steamDashApply = document.getElementById("steamDashApply");
+  steamDashApply &&
+    steamDashApply.addEventListener("click", function () {
+      loadSteamTopupDashboard();
     });
 
   function refreshAuthUI() {

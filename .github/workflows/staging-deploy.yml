@@ -1,0 +1,26 @@
+name: Deploy Staging
+
+on:
+  push:
+    branches:
+      - develop
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Deploy to staging
+        uses: appleboy/ssh-action@master
+
+        with:
+          host: 159.194.214.39
+          username: root
+          key: ${{ secrets.SERVER_SSH_KEY }}
+
+          script: |
+            cd /staging.skinexs.ru/public_html
+            git pull
+            cd server
+            npm install
+            pm2 restart skinexs-staging

@@ -131,6 +131,59 @@ function migrate() {
       FOREIGN KEY (user_id) REFERENCES users(id)
     );
     CREATE INDEX IF NOT EXISTS idx_trader_apps_user_pending ON trader_applications (user_id, status);
+    CREATE TABLE IF NOT EXISTS password_reset_tokens (
+      id TEXT PRIMARY KEY,
+      user_id TEXT NOT NULL,
+      token_hash TEXT NOT NULL UNIQUE,
+      expires_at INTEGER NOT NULL,
+      created_at INTEGER NOT NULL,
+      FOREIGN KEY (user_id) REFERENCES users(id)
+    );
+    CREATE INDEX IF NOT EXISTS idx_pwd_reset_user ON password_reset_tokens(user_id);
+    CREATE TABLE IF NOT EXISTS steam_topup_settings (
+      id INTEGER PRIMARY KEY CHECK (id = 1),
+      instant_commission_pct REAL NOT NULL DEFAULT 7,
+      keys_price_rub INTEGER NOT NULL DEFAULT 156,
+      keys_client_profit_pct REAL NOT NULL DEFAULT 10,
+      updated_at INTEGER NOT NULL DEFAULT 0
+    );
+    INSERT OR IGNORE INTO steam_topup_settings (id, instant_commission_pct, keys_price_rub, keys_client_profit_pct, updated_at)
+    VALUES (1, 7, 156, 10, 0);
+    CREATE TABLE IF NOT EXISTS steam_topup_events (
+      id TEXT PRIMARY KEY,
+      method TEXT NOT NULL,
+      kind TEXT NOT NULL DEFAULT 'event',
+      created_at INTEGER NOT NULL,
+      user_id TEXT,
+      steam_ref TEXT NOT NULL DEFAULT '',
+      key_count INTEGER,
+      amount_steam_rub INTEGER NOT NULL DEFAULT 0,
+      amount_site_rub INTEGER NOT NULL DEFAULT 0,
+      partner_tx_id TEXT,
+      partner_ok INTEGER,
+      pay_method TEXT
+    );
+    CREATE INDEX IF NOT EXISTS idx_steam_topup_events_created ON steam_topup_events(created_at DESC);
+    CREATE INDEX IF NOT EXISTS idx_steam_topup_events_method ON steam_topup_events(method);
+    CREATE TABLE IF NOT EXISTS steam_keys_orders (
+      id TEXT PRIMARY KEY,
+      user_id TEXT NOT NULL,
+      key_count INTEGER NOT NULL,
+      amount_rub INTEGER NOT NULL,
+      amount_steam_estimate_rub INTEGER NOT NULL DEFAULT 0,
+      trade_url TEXT NOT NULL,
+      pay_method TEXT,
+      yookassa_payment_id TEXT,
+      status TEXT NOT NULL DEFAULT 'pending',
+      delivery_state TEXT NOT NULL DEFAULT 'none',
+      delivery_error TEXT,
+      created_at INTEGER NOT NULL,
+      updated_at INTEGER NOT NULL,
+      FOREIGN KEY (user_id) REFERENCES users(id)
+    );
+    CREATE INDEX IF NOT EXISTS idx_steam_keys_orders_user ON steam_keys_orders(user_id);
+    CREATE INDEX IF NOT EXISTS idx_steam_keys_orders_created ON steam_keys_orders(created_at DESC);
+    CREATE INDEX IF NOT EXISTS idx_steam_keys_orders_status ON steam_keys_orders(status);
   `);
   try {
     db.prepare("SELECT balance_rub FROM users LIMIT 1").get();

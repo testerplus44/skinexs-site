@@ -471,6 +471,69 @@
     return loginUser(email, password);
   }
 
+  function requestPasswordReset(email) {
+    var e = normEmail(email);
+    if (!useServerApi()) {
+      return Promise.resolve({
+        ok: false,
+        message: "Сброс пароля доступен при работе сайта через сервер (API). Включите режим сервера или обратитесь в поддержку.",
+      });
+    }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e)) {
+      return Promise.resolve({ ok: false, message: "Укажите корректный email." });
+    }
+    return fetch(apiUrl("/api/v1/auth/forgot-password"), {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      body: JSON.stringify({ email: e }),
+    })
+      .then(function (res) {
+        return res.json().then(function (data) {
+          if (!res.ok || !data.ok) {
+            return { ok: false, message: (data && data.message) || "Не удалось отправить запрос." };
+          }
+          return { ok: true, message: data.message || "Проверьте почту." };
+        });
+      })
+      .catch(function () {
+        return { ok: false, message: "Нет связи с сервером." };
+      });
+  }
+
+  function resetPasswordWithToken(token, password) {
+    if (!useServerApi()) {
+      return Promise.resolve({
+        ok: false,
+        message: "Сброс пароля доступен при работе сайта через сервер (API).",
+      });
+    }
+    var t = String(token || "").trim();
+    if (!t || t.length < 64) {
+      return Promise.resolve({ ok: false, message: "Ссылка недействительна или устарела." });
+    }
+    if (!password || String(password).length < 6) {
+      return Promise.resolve({ ok: false, message: "Пароль не короче 6 символов." });
+    }
+    return fetch(apiUrl("/api/v1/auth/reset-password"), {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      body: JSON.stringify({ token: t, password: String(password) }),
+    })
+      .then(function (res) {
+        return res.json().then(function (data) {
+          if (!res.ok || !data.ok) {
+            return { ok: false, message: (data && data.message) || "Не удалось сменить пароль." };
+          }
+          return { ok: true, message: data.message || "Пароль обновлён." };
+        });
+      })
+      .catch(function () {
+        return { ok: false, message: "Нет связи с сервером." };
+      });
+  }
+
   function register(email, password, displayName) {
     var e = normEmail(email);
     if (useServerApi()) {
@@ -664,6 +727,8 @@
     loginAdmin: loginAdmin,
     loginUser: loginUser,
     register: register,
+    requestPasswordReset: requestPasswordReset,
+    resetPasswordWithToken: resetPasswordWithToken,
     logout: logout,
     normEmail: normEmail,
     listAccountEmailsByRoles: listAccountEmailsByRoles,

@@ -62,16 +62,18 @@
               <span>Пароль</span>
               <input type="password" name="password" required autocomplete="current-password" />
             </label>
+            <p class="auth-forgot-wrap"><a href="forgot-password.html" class="auth-forgot-link">Забыли пароль?</a></p>
             <button type="submit" class="btn-cs-cart btn-block auth-submit">Войти</button>
             <div class="auth-steam-wrap">
               <span class="auth-steam-sep">или</span>
               <button type="button" class="btn-steam btn-block" id="btnSteamLogin" title="Войти через Steam OpenID">
                 <span class="btn-steam-icon" aria-hidden="true">
-                  <svg class="btn-steam-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20" focusable="false">
-                    <path
-                      fill="currentColor"
-                      d="M11.979 0C5.678 0 .511 4.86.022 11.037l6.432 2.658c.545-.371 1.203-.59 1.912-.59.063 0 .125.004.188.006l2.861-4.142V8.91c0-2.495 2.028-4.524 4.524-4.524 2.493 0 4.524 2.031 4.524 4.527s-2.031 4.527-4.524 4.527h-.105l-4.078 2.978c0 3.231 2.639 5.871 5.871 5.871 3.232 0 5.871-2.64 5.871-5.871V11.37c0-.096-.008-.192-.016-.288C24.004 4.958 18.867.003 12.516.003c-.059 0-.118.003-.177.003L11.979 0zm-.005 1.531c5.45 0 9.878 4.427 9.878 9.878 0 .091-.012.18-.015.27l-5.635 2.525v-1.082c0-2.45-1.987-4.435-4.435-4.435-2.45 0-4.435 1.984-4.435 4.435v3.864l-6.041-2.598C1.254 5.549 5.678 1.531 11.974 1.531h.001zm-4.08 14.489l2.535 1.049c-.078.187-.123.392-.123.607 0 .747.604 1.349 1.349 1.349.746 0 1.349-.602 1.349-1.349 0-.747-.603-1.349-1.349-1.349-.215 0-.42.045-.607.123L7.894 16.02z"
-                    />
+                  <svg class="btn-steam-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="22" height="22" focusable="false" aria-hidden="true">
+                    <g fill="none" stroke="currentColor" stroke-width="2.15" stroke-linecap="round" stroke-linejoin="round">
+                      <circle cx="8.5" cy="15.5" r="4.85" />
+                      <line x1="11.6" y1="13.15" x2="15.85" y2="8.9" />
+                      <circle cx="17.25" cy="7.75" r="3.15" />
+                    </g>
                   </svg>
                 </span>
                 Войти через Steam
