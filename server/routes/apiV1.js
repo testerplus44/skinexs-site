@@ -217,15 +217,17 @@ function finalizeSteamKeysOrderFromPayment(db, payment) {
   } catch (e) {
     console.error("[steam_topup_events keys yookassa]", e.message || e);
   }
-  try {
-    notifyInApp(row.user_id, {
-      kind: "steam_keys",
-      title: "Оплата ключей принята",
-      body: `Заказ ${row.key_count} шт. Отправка по трейд-ссылке обрабатывается.`,
-      link: "/steam-topup.html",
-    });
-  } catch (e) {
-    console.error("[notifyInApp steam keys]", e.message || e);
+  if (row.user_id) {
+    try {
+      notifyInApp(row.user_id, {
+        kind: "steam_keys",
+        title: "Оплата ключей принята",
+        body: `Заказ ${row.key_count} шт. Отправка по трейд-ссылке обрабатывается.`,
+        link: "/steam-topup.html",
+      });
+    } catch (e) {
+      console.error("[notifyInApp steam keys]", e.message || e);
+    }
   }
 
   steamKeysDelivery.queueDeliveryAfterPayment(orderId);
@@ -1438,7 +1440,11 @@ router.post("/payments/yookassa/complete-check", requireAuth, async (req, res) =
 
 // ——— ЮKassa: выгодное пополнение (ключи по трейд-ссылке) ———
 
-router.post("/payments/yookassa/steam-keys/create", requireAuth, async (req, res) => {
+function optionalSessionUserId(req) {
+  return req.session && req.session.userId ? String(req.session.userId) : null;
+}
+
+router.post("/payments/yookassa/steam-keys/create", async (req, res) => {
   if (!yk.isConfigured()) {
     return res.status(503).json({
       ok: false,
@@ -1482,7 +1488,7 @@ router.post("/payments/yookassa/steam-keys/create", requireAuth, async (req, res
     ) VALUES (?, ?, ?, ?, ?, ?, ?, NULL, 'pending', 'none', NULL, ?, ?)`,
   ).run(
     orderId,
-    req.session.userId,
+    optionalSessionUserId(req),
     keyCount,
     amountRub,
     steamEst,
@@ -1500,7 +1506,7 @@ router.post("/payments/yookassa/steam-keys/create", requireAuth, async (req, res
       description: `Skinexs: ключи Steam ×${keyCount} (${amountRub} ₽)`,
       metadata: {
         steam_keys_order_id: orderId,
-        user_id: String(req.session.userId),
+        user_id: optionalSessionUserId(req) || "",
         kind: "steam_keys_order",
       },
     });
@@ -1530,13 +1536,17 @@ router.post("/payments/yookassa/steam-keys/create", requireAuth, async (req, res
   }
 });
 
-router.post("/payments/yookassa/steam-keys/complete-check", requireAuth, async (req, res) => {
+router.post("/payments/yookassa/steam-keys/complete-check", async (req, res) => {
   const orderId = String((req.body && req.body.steamKeysOrderId) || "").trim();
   if (!orderId) return res.status(400).json({ ok: false, message: "Нет steamKeysOrderId." });
   const db = getDb();
   const row = db.prepare("SELECT * FROM steam_keys_orders WHERE id = ?").get(orderId);
-  if (!row || row.user_id !== req.session.userId) {
+  if (!row) {
     return res.status(404).json({ ok: false, message: "Заказ не найден." });
+  }
+  const sessionUid = optionalSessionUserId(req);
+  if (row.user_id && sessionUid && row.user_id !== sessionUid) {
+    return res.status(403).json({ ok: false, message: "Нет доступа к этому заказу." });
   }
   if (row.status === "succeeded") {
     const r2 = db.prepare("SELECT delivery_state, delivery_error FROM steam_keys_orders WHERE id = ?").get(orderId);

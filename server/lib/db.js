@@ -167,7 +167,7 @@ function migrate() {
     CREATE INDEX IF NOT EXISTS idx_steam_topup_events_method ON steam_topup_events(method);
     CREATE TABLE IF NOT EXISTS steam_keys_orders (
       id TEXT PRIMARY KEY,
-      user_id TEXT NOT NULL,
+      user_id TEXT,
       key_count INTEGER NOT NULL,
       amount_rub INTEGER NOT NULL,
       amount_steam_estimate_rub INTEGER NOT NULL DEFAULT 0,
@@ -190,6 +190,37 @@ function migrate() {
   } catch (e) {
     db.exec("ALTER TABLE users ADD COLUMN balance_rub INTEGER NOT NULL DEFAULT 0");
   }
+  migrateSteamKeysOrdersNullableUserId();
+}
+
+/** Гостевые заказы ключей: user_id может быть NULL (без регистрации на сайте). */
+function migrateSteamKeysOrdersNullableUserId() {
+  const row = db.prepare("SELECT name, \"notnull\" AS nn FROM pragma_table_info('steam_keys_orders') WHERE name = 'user_id'").get();
+  if (!row || row.nn === 0) return;
+  db.exec(`
+    CREATE TABLE steam_keys_orders_guest (
+      id TEXT PRIMARY KEY,
+      user_id TEXT,
+      key_count INTEGER NOT NULL,
+      amount_rub INTEGER NOT NULL,
+      amount_steam_estimate_rub INTEGER NOT NULL DEFAULT 0,
+      trade_url TEXT NOT NULL,
+      pay_method TEXT,
+      yookassa_payment_id TEXT,
+      status TEXT NOT NULL DEFAULT 'pending',
+      delivery_state TEXT NOT NULL DEFAULT 'none',
+      delivery_error TEXT,
+      created_at INTEGER NOT NULL,
+      updated_at INTEGER NOT NULL,
+      FOREIGN KEY (user_id) REFERENCES users(id)
+    );
+    INSERT INTO steam_keys_orders_guest SELECT * FROM steam_keys_orders;
+    DROP TABLE steam_keys_orders;
+    ALTER TABLE steam_keys_orders_guest RENAME TO steam_keys_orders;
+    CREATE INDEX IF NOT EXISTS idx_steam_keys_orders_user ON steam_keys_orders(user_id);
+    CREATE INDEX IF NOT EXISTS idx_steam_keys_orders_created ON steam_keys_orders(created_at DESC);
+    CREATE INDEX IF NOT EXISTS idx_steam_keys_orders_status ON steam_keys_orders(status);
+  `);
 }
 
 function open() {

@@ -208,6 +208,23 @@
       });
   }
 
+  function steamTradeUrlValid(raw) {
+    var s = String(raw || "").trim();
+    if (!s) return false;
+    var u = /^https?:\/\//i.test(s) ? s : "https://" + s;
+    try {
+      var url = new URL(u);
+      var host = url.hostname.toLowerCase();
+      if (host !== "steamcommunity.com" && host !== "www.steamcommunity.com") return false;
+      if (!url.pathname.includes("tradeoffer/new")) return false;
+      var partner = url.searchParams.get("partner");
+      var token = url.searchParams.get("token");
+      return !!(partner && token && /^\d+$/.test(partner) && token.length >= 4);
+    } catch (e) {
+      return false;
+    }
+  }
+
   function initKeysCheckoutIntent() {
     var btn = document.getElementById("stPayKeys");
     if (!btn || btn.tagName !== "BUTTON") return;
@@ -218,7 +235,14 @@
       var tradeInput = document.getElementById("stTradeUrl");
       var tradeUrl = tradeInput ? String(tradeInput.value || "").trim() : "";
       if (!window.SKINEX_USE_SERVER_API || typeof fetch === "undefined") {
-        window.location.href = "auth.html?next=" + encodeURIComponent("steam-topup.html");
+        setKeysPayMsg(
+          "Оплата доступна при открытии сайта через сервер (npm start в папке server).",
+          true
+        );
+        return;
+      }
+      if (!steamTradeUrlValid(tradeUrl)) {
+        setKeysPayMsg("Укажите корректную трейд-ссылку Steam (partner и token в URL).", true);
         return;
       }
       btn.disabled = true;
@@ -229,13 +253,6 @@
       })
         .then(function (r) {
           var d = r.data;
-          if (r.res.status === 401) {
-            setKeysPayMsg("Войдите в аккаунт, чтобы оплатить ключи.", true);
-            window.setTimeout(function () {
-              window.location.href = "auth.html?next=" + encodeURIComponent("steam-topup.html");
-            }, 900);
-            return;
-          }
           if (r.res.status === 503) {
             setKeysPayMsg((d && d.message) || "Платежи на сервере не настроены.", true);
             return;

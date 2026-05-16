@@ -104,8 +104,8 @@ npm run steam-bot
 - Маркет, заказы, отзывы, тикеты, споры, аудит — см. `routes/apiV1.js`.
 - `POST /api/v1/payments/yookassa/topup` — создать платёж на пополнение баланса (сессия, JSON `{ "amountRub": 1000 }`), ответ: `confirmationUrl` для редиректа.
 - `POST /api/v1/payments/yookassa/complete-check` — проверить статус после возврата (JSON `{ "topupId": "tup_..." }`).
-- `POST /api/v1/payments/yookassa/steam-keys/create` — заказ TF2-ключей (выгодное пополнение): сессия, JSON `{ "keyCount": 1, "tradeUrl": "https://steamcommunity.com/tradeoffer/new/?partner=…&token=…", "payMethod"?: "sbp"|"card" }`. Сумма считается на сервере из настроек (`keys_price_rub` × `keyCount`). Ответ: `confirmationUrl`, `steamKeysOrderId`.
-- `POST /api/v1/payments/yookassa/steam-keys/complete-check` — после возврата с ЮKassa (JSON `{ "steamKeysOrderId": "stk_..." }`).
+- `POST /api/v1/payments/yookassa/steam-keys/create` — заказ TF2-ключей (выгодное пополнение), **без обязательной сессии** (гость или авторизованный): JSON `{ "keyCount": 1, "tradeUrl": "https://steamcommunity.com/tradeoffer/new/?partner=…&token=…", "payMethod"?: "sbp"|"card" }`. Сумма считается на сервере из настроек (`keys_price_rub` × `keyCount`). Ответ: `confirmationUrl`, `steamKeysOrderId`.
+- `POST /api/v1/payments/yookassa/steam-keys/complete-check` — после возврата с ЮKassa (JSON `{ "steamKeysOrderId": "stk_..." }`), сессия не обязательна; чужой заказ с привязкой к аккаунту недоступен без входа.
 - `POST /api/v1/payments/yookassa/webhook` — уведомления ЮKassa о платеже (проверка статуса через API ЮKassa).
 - `POST /api/v1/partner/avatarix/steam/pay` — моментальное пополнение Steam (Avatarix): JSON `{ "steamLogin", "amountRub" }` (сумма к зачислению на Steam, 100–500000), опционально `transactionId` (до 15 символов), `payMethod` (`sbp` \| `card`). Нужны переменные `AVATARIX_*`. Событие пишется в `steam_topup_events`.
 - `POST /api/v1/partner/avatarix/steam/status` — статус операции: JSON `{ "transactionId" }`.

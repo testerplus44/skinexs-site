@@ -1,9 +1,11 @@
 /**
  * Skinexs: статика + SQLite API v1 + legacy GET /collections, /listings, POST /api/auth/steam/verify
  */
+const path = require("path");
+require("dotenv").config({ path: path.join(__dirname, ".env") });
+
 const express = require("express");
 const fs = require("fs");
-const path = require("path");
 const vm = require("vm");
 const session = require("express-session");
 const rateLimit = require("express-rate-limit");
