@@ -5,7 +5,7 @@ const fs = require("fs");
 const path = require("path");
 const Database = require("better-sqlite3");
 
-const DB_PATH = process.env.SKINEX_DB_PATH || path.join(__dirname, "..", "data", "skinex.db");
+const DB_PATH = process.env.DB_PATH || "/var/skinexs-data/prod.db";
 
 let db;
 

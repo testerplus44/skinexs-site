@@ -8,6 +8,27 @@ npm install
 npm start
 ```
 
+### PM2 (staging / production)
+
+Файл `ecosystem.config.cjs` задаёт `DB_PATH` для каждого окружения:
+
+| Процесс | `DB_PATH` |
+|---------|-----------|
+| `skinexs-staging` | `/var/skinexs-data/staging.db` |
+| `skinexs-prod` | `/var/skinexs-data/prod.db` |
+
+```bash
+cd server
+# первый запуск
+pm2 start ecosystem.config.cjs --only skinexs-staging
+# или production
+pm2 start ecosystem.config.cjs --only skinexs-prod
+# после деплоя
+pm2 restart skinexs-staging
+```
+
+На сервере каталог данных: `sudo mkdir -p /var/skinexs-data && sudo chown deploy:deploy /var/skinexs-data`.
+
 Сайт открывайте с того же хоста и порта (например `http://localhost:3000`). В `js/admin-config.js` раскомментируйте `window.SKINEX_USE_SERVER_API = true`, чтобы вход и каталог шли через API.
 
 ## Переменные окружения
@@ -15,7 +36,7 @@ npm start
 | Переменная | Назначение |
 |------------|------------|
 | `PORT` | Порт HTTP (по умолчанию 3000) |
-| `SKINEX_DB_PATH` | Путь к файлу SQLite (по умолчанию `server/data/skinex.db`) |
+| `DB_PATH` | Путь к файлу SQLite (по умолчанию `/var/skinexs-data/prod.db`) |
 | `SKINEX_SESSION_SECRET` | Секрет подписи cookie-сессии (**обязательно сменить в продакшене**) |
 | `SKINEX_ADMIN_EMAIL` | Email администратора при первом seed (по умолчанию `admin@skinex.local`) |
 | `SKINEX_ADMIN_PASSWORD` | Пароль администратора при первом seed |

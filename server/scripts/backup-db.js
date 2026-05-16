@@ -4,8 +4,8 @@
 const fs = require("fs");
 const path = require("path");
 
-const def = path.join(__dirname, "..", "data", "skinex.db");
-const src = process.env.SKINEX_DB_PATH || def;
+const { DB_PATH } = require("../lib/db");
+const src = DB_PATH;
 
 const stamp = new Date().toISOString().replace(/[:.]/g, "-");
 const dest = path.join(path.dirname(src), `skinex-backup-${stamp}.db`);
