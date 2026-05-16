@@ -49,8 +49,33 @@ pm2 restart skinexs-staging
 | `SKINEX_PAYMENT_WEBHOOK_SECRET` | Секрет для заголовка `X-SKINEX-Secret` у webhook оплаты |
 | `YOOKASSA_SHOP_ID` | Идентификатор магазина в [ЮKassa](https://yookassa.ru/) (пополнение баланса и **оплата ключей** на `steam-topup.html`) |
 | `YOOKASSA_SECRET_KEY` | Секретный ключ магазина |
-| `SKINEX_STEAM_KEYS_WEBHOOK_URL` | (Опционально) HTTPS URL вашего **Steam-бота**: после успешной оплаты заказа ключей сервер делает `POST` с JSON `{ orderId, userId, keyCount, tradeUrl, amountRub, yookassaPaymentId }`. Бот создаёт trade offer по `tradeUrl` и передаёт ключи. |
-| `SKINEX_STEAM_KEYS_WEBHOOK_SECRET` | Если задан — тело запроса подписывается HMAC-SHA256 (hex) в заголовке `X-Skinex-Signature`. |
+| `SKINEX_STEAM_KEYS_WEBHOOK_URL` | URL воркера бота, например `http://127.0.0.1:3847/deliver`. После успешной оплаты ключей API шлёт `POST` с JSON `{ orderId, userId, keyCount, tradeUrl, amountRub, yookassaPaymentId }`. |
+| `SKINEX_STEAM_KEYS_WEBHOOK_SECRET` | Общий секрет с ботом: HMAC-SHA256 тела в заголовке `X-Skinex-Signature` (hex). |
+
+### Steam-бот (выдача TF2-ключей после оплаты)
+
+Цепочка: клиент на `steam-topup.html` → «Выгодное пополнение» → ЮKassa → вебхук API → **бот** отправляет ключи по трейд-ссылке.
+
+```bash
+cd server/steam-bot
+npm install
+cp .env.example .env   # заполните логин бота и секреты
+npm start
+```
+
+На основном API (в `.env` или PM2):
+
+```env
+SKINEX_STEAM_KEYS_WEBHOOK_URL=http://127.0.0.1:3847/deliver
+SKINEX_STEAM_KEYS_WEBHOOK_SECRET=тот_же_секрет_что_у_бота
+```
+
+Переменные бота: `STEAM_BOT_ACCOUNT_NAME`, `STEAM_BOT_PASSWORD`, `STEAM_BOT_SHARED_SECRET` (2FA), `STEAM_BOT_DRY_RUN=1` — тест без реальных трейдов. В инвентаре бота должны лежать **Mann Co. Supply Crate Key** (TF2).
+
+```bash
+cd server
+npm run steam-bot
+```
 | `AVATARIX_AGENT_ID` | Идентификатор агента [Avatarix](https://apidoc.avatarix.net) (моментальное пополнение Steam) |
 | `AVATARIX_AGENT_PASSWORD` | Пароль агента Avatarix |
 | `AVATARIX_SERVICE_STEAM` | Числовой ID услуги Steam в кабинете Avatarix (выдаёт менеджер) |

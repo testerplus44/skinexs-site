@@ -186,4 +186,11 @@ app.listen(PORT, () => {
   console.log(`Skinexs: http://localhost:${PORT}`);
   console.log(`API v1: http://localhost:${PORT}/api/v1/catalog`);
   startNotifyWorker(20000);
+  try {
+    const { startSteamBotServer } = require("./steam-bot");
+    startSteamBotServer();
+  } catch (e) {
+    console.error("[steam-bot] не запущен:", e.message || e);
+    console.error("[steam-bot] выполните: cd server && npm install");
+  }
 });

@@ -1,0 +1,20 @@
+{
+  "name": "skinexs-steam-bot",
+  "private": true,
+  "version": "1.0.0",
+  "description": "TF2 keys trade bot for Skinexs (webhook after YooKassa payment)",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "express": "^4.21.2",
+    "steam-totp": "^2.1.2",
+    "steam-tradeoffer-manager": "^2.11.0",
+    "steam-user": "^5.2.0",
+    "steamcommunity": "^3.48.6"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

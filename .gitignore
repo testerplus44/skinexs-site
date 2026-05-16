@@ -1,7 +1,9 @@
 *.db
 *.sqlite
 server/data/
+server/steam-bot/data/
 .env
+server/steam-bot/.env
 server/node_modules/
 *.db-wal
 *.db-shm

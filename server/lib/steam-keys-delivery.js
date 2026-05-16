@@ -50,8 +50,17 @@ function updateOrderDelivery(db, orderId, state, errMsg) {
  * @param {object} order — строка steam_keys_orders
  * @returns {Promise<{ skipped?: boolean, ok?: boolean }>}
  */
+function resolveSteamKeysWebhookUrl() {
+  const explicit = String(process.env.SKINEX_STEAM_KEYS_WEBHOOK_URL || "").trim();
+  if (explicit) return explicit;
+  const off = String(process.env.STEAM_BOT_ENABLED || "").toLowerCase();
+  if (off === "0" || off === "false" || off === "no") return "";
+  const port = String(process.env.STEAM_BOT_PORT || "3847").trim();
+  return `http://127.0.0.1:${port}/deliver`;
+}
+
 async function sendDeliveryWebhook(order) {
-  const url = String(process.env.SKINEX_STEAM_KEYS_WEBHOOK_URL || "").trim();
+  const url = resolveSteamKeysWebhookUrl();
   if (!url) {
     return { skipped: true };
   }
@@ -82,7 +91,13 @@ async function sendDeliveryWebhook(order) {
     const txt = await res.text().catch(() => "");
     throw new Error(`webhook HTTP ${res.status}${txt ? `: ${txt.slice(0, 200)}` : ""}`);
   }
-  return { ok: true };
+  let data = null;
+  try {
+    data = await res.json();
+  } catch {
+    data = null;
+  }
+  return { ok: true, data };
 }
 
 function queueDeliveryAfterPayment(orderId) {
@@ -93,8 +108,14 @@ function queueDeliveryAfterPayment(orderId) {
     sendDeliveryWebhook(order)
       .then((r) => {
         const d = getDb();
-        if (r && r.skipped) updateOrderDelivery(d, orderId, "skipped", null);
-        else updateOrderDelivery(d, orderId, "webhook_ok", null);
+        if (r && r.skipped) {
+          updateOrderDelivery(d, orderId, "skipped", null);
+          return;
+        }
+        const tradeId =
+          r && r.data && r.data.tradeOfferId != null ? String(r.data.tradeOfferId) : null;
+        const note = tradeId ? `offer:${tradeId}` : null;
+        updateOrderDelivery(d, orderId, "webhook_ok", note);
       })
       .catch((e) => {
         const msg = e && e.name === "AbortError" ? "webhook timeout" : String(e.message || e);

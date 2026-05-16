@@ -16,6 +16,8 @@ module.exports = {
       env: {
         NODE_ENV: "staging",
         DB_PATH: "/var/skinexs-data/staging.db",
+        STEAM_BOT_ENABLED: "1",
+        STEAM_BOT_PORT: "3847",
       },
     },
     {
@@ -29,6 +31,8 @@ module.exports = {
       env: {
         NODE_ENV: "production",
         DB_PATH: "/var/skinexs-data/prod.db",
+        STEAM_BOT_ENABLED: "1",
+        STEAM_BOT_PORT: "3847",
       },
     },
   ],
