@@ -1,6 +1,7 @@
 *.db
 *.sqlite
 server/data/
+.env
 server/node_modules/
 *.db-wal
 *.db-shm
