@@ -432,7 +432,7 @@
         var cls = m.side === "staff" ? "support-msg support-msg--staff" : "support-msg support-msg--client";
         var who =
           m.side === "staff"
-            ? "Тех. поддержка"
+            ? "Поддержка"
             : t.userDisplayName || (t.userEmail || "").split("@")[0] || "Вы";
         return (
           '<div class="' +

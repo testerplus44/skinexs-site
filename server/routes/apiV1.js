@@ -891,7 +891,7 @@ router.post("/tickets", requireAuth, (req, res) => {
     notifyInApp(req.session.userId, {
       kind: "ticket",
       title: "Обращение зарегистрировано",
-      body: `Тикет №${ticketNo}. Ответ придёт на email или смотрите раздел «Тех. поддержка».`,
+      body: `Тикет №${ticketNo}. Ответ придёт на email или смотрите раздел «Поддержка».`,
       link: "/support.html",
     });
     notifyStaffInApp({
@@ -947,7 +947,7 @@ router.post("/tickets/:id/messages", requireAuth, (req, res) => {
         notifyInApp(urow.id, {
           kind: "support",
           title: "Сообщение от поддержки",
-          body: `Тикет №${ticketNo}. Откройте раздел «Тех. поддержка».`,
+          body: `Тикет №${ticketNo}. Откройте раздел «Поддержка».`,
           link: "/support.html",
         });
       }
@@ -984,7 +984,7 @@ router.post("/disputes", requireAuth, (req, res) => {
     notifyInApp(req.session.userId, {
       kind: "dispute",
       title: "Спор зарегистрирован",
-      body: `По заказу ${orderId}. Тех. поддержка рассмотрит обращение.`,
+      body: `По заказу ${orderId}. Поддержка рассмотрит обращение.`,
       link: "/account.html",
     });
     const noteShort = notes.length > 180 ? `${notes.slice(0, 177)}…` : notes;
