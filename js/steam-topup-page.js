@@ -131,27 +131,6 @@
     });
   }
 
-  function initPayTiles(root) {
-    if (!root) return;
-    var group = root.querySelector(".steam-topup-paygrid");
-    if (!group) return;
-    group.addEventListener("click", function (e) {
-      var t = e.target.closest(".steam-topup-paytile");
-      if (!t || !group.contains(t)) return;
-      group.querySelectorAll(".steam-topup-paytile").forEach(function (btn) {
-        btn.classList.toggle("is-active", btn === t);
-        btn.setAttribute("aria-checked", btn === t ? "true" : "false");
-      });
-    });
-  }
-
-  function getActivePayMethod(rootId) {
-    var root = document.getElementById(rootId);
-    if (!root) return null;
-    var t = root.querySelector(".steam-topup-paytile.is-active[data-pay]");
-    return t ? String(t.getAttribute("data-pay") || "").trim() || null : null;
-  }
-
   function initKeysStepper() {
     var minus = document.getElementById("stKeyMinus");
     var plus = document.getElementById("stKeyPlus");
@@ -238,7 +217,6 @@
       if (!isFinite(count) || count < 1) count = 1;
       var tradeInput = document.getElementById("stTradeUrl");
       var tradeUrl = tradeInput ? String(tradeInput.value || "").trim() : "";
-      var payMethod = getActivePayMethod("steam-topup-mode-value");
       if (!window.SKINEX_USE_SERVER_API || typeof fetch === "undefined") {
         window.location.href = "auth.html?next=" + encodeURIComponent("steam-topup.html");
         return;
@@ -248,7 +226,6 @@
       postJson("/api/v1/payments/yookassa/steam-keys/create", {
         keyCount: count,
         tradeUrl: tradeUrl,
-        payMethod: payMethod,
       })
         .then(function (r) {
           var d = r.data;
@@ -360,10 +337,7 @@
       }
       btn.disabled = true;
       setInstantPayMsg("Отправляем заявку партнёру…", false);
-      var payBody = { steamLogin: steamLogin, amountRub: amountRub };
-      var pm = getActivePayMethod("steam-topup-mode-instant");
-      if (pm) payBody.payMethod = pm;
-      postJson("/api/v1/partner/avatarix/steam/pay", payBody)
+      postJson("/api/v1/partner/avatarix/steam/pay", { steamLogin: steamLogin, amountRub: amountRub })
         .then(function (first) {
           var d = first.data;
           var tid = d && d.transactionId ? String(d.transactionId) : "";
@@ -433,8 +407,6 @@
     fetchSteamTopupSettingsFromServer().then(function () {
       applySteamTopupLabels();
       initTabs();
-      initPayTiles(document.getElementById("steam-topup-mode-instant"));
-      initPayTiles(document.getElementById("steam-topup-mode-value"));
 
       var amount = document.getElementById("stAmountRub");
       if (amount) {
