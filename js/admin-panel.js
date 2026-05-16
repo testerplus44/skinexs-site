@@ -96,6 +96,16 @@
   var hintEditorReset = document.getElementById("hintEditorReset");
   var adminHintEditorNote = document.getElementById("adminHintEditorNote");
 
+  function syncAdminTabButtons() {
+    TAB_KEYS.forEach(function (k) {
+      var btn = document.querySelector('.admin-tab[data-admin-tab="' + k + '"]');
+      if (!btn) return;
+      btn.disabled = false;
+      btn.classList.remove("is-disabled");
+      btn.removeAttribute("aria-disabled");
+    });
+  }
+
   function applyAdminTab(which) {
     if (TAB_KEYS.indexOf(which) < 0) which = "dashboard";
     var map = {
@@ -119,6 +129,9 @@
         m.btn.classList.toggle("is-active", on);
         m.btn.setAttribute("aria-selected", on ? "true" : "false");
         m.btn.tabIndex = on ? 0 : -1;
+        m.btn.disabled = false;
+        m.btn.classList.remove("is-disabled");
+        m.btn.removeAttribute("aria-disabled");
       }
       if (m.panel) m.panel.hidden = !on;
     });
@@ -194,6 +207,18 @@
     tabBtnFilters.addEventListener("click", function () {
       applyAdminTab("filters");
     });
+
+  var adminTabsBar = document.querySelector(".admin-tabs");
+  if (adminTabsBar) {
+    adminTabsBar.addEventListener("click", function (e) {
+      var btn = e.target.closest(".admin-tab[data-admin-tab]");
+      if (!btn || !adminTabsBar.contains(btn) || btn.disabled || btn.classList.contains("is-disabled")) return;
+      var key = String(btn.getAttribute("data-admin-tab") || "").trim();
+      if (TAB_KEYS.indexOf(key) >= 0) applyAdminTab(key);
+    });
+  }
+
+  syncAdminTabButtons();
 
   /** Коллекции и категории: чтение строк с колонкой «Родитель». */
   function readMetaRowsWithParentFromTbody(tbody) {
@@ -2241,8 +2266,11 @@
   }
 
   function loadSteamTopupForm() {
-    if (!adminSteamTopupForm) return;
     var note = adminSteamTopupFormNote;
+    if (!adminSteamTopupForm) {
+      loadSteamTopupDashboard();
+      return;
+    }
     if (note) {
       note.textContent = "";
       note.style.color = "";
@@ -2602,6 +2630,7 @@
     if (loginBlock) loginBlock.hidden = ok;
     if (panelBlock) panelBlock.hidden = !ok;
     if (ok) {
+      syncAdminTabButtons();
       renderTaxonomyLists();
       renderSidebarMetaTables();
       renderTable();

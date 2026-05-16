@@ -4278,6 +4278,9 @@ body.modal-open {
   flex-wrap: wrap;
   gap: 10px;
   margin-bottom: 24px;
+  position: relative;
+  z-index: 12;
+  isolation: isolate;
 }
 
 .admin-tab {
@@ -4290,7 +4293,16 @@ body.modal-open {
   background: rgba(10, 12, 18, 0.65);
   color: var(--muted);
   cursor: pointer;
+  pointer-events: auto;
+  flex: 0 0 auto;
   transition: color 0.2s, border-color 0.2s, background 0.2s, box-shadow 0.2s;
+}
+
+.admin-tab:disabled,
+.admin-tab.is-disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  pointer-events: none;
 }
 
 .admin-tab:hover {
@@ -4307,6 +4319,11 @@ body.modal-open {
 
 .admin-tab-panel[hidden] {
   display: none !important;
+}
+
+.admin-panel-block .admin-tab-panel:not([hidden]) {
+  position: relative;
+  z-index: 1;
 }
 
 .admin-users-tab-head {
