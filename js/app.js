@@ -555,18 +555,11 @@
           </div>
         </a>
         <div class="cs-card-body cs-card-body--v2">
-          <h3 class="cs-card-name">
-            <a class="cs-card-name-link" href="${pUrl}">${escapeHtml(item.name)}</a>
-          </h3>
-          <div class="cs-card-foot">
-            <div class="cs-card-foot-left">
-              <span class="cs-card-avatar" aria-hidden="true">${item.icon || "📦"}</span>
-              <div class="cs-card-foot-meta">
-                <span class="cs-card-hero-name">${escapeHtml(item.hero)}</span>
-                <span class="cs-card-rarity-pill cs-card-rarity-pill--${String(item.rarity || "mythical")}">${escapeHtml(rLabel)}</span>
-              </div>
-            </div>
-            <div class="cs-card-foot-right">${footPrice}</div>
+          <div class="cs-card-title-row">
+            <h3 class="cs-card-name">
+              <a class="cs-card-name-link" href="${pUrl}">${escapeHtml(item.name)}</a>
+            </h3>
+            <div class="cs-card-title-price">${footPrice}</div>
           </div>
           <div class="cs-card-actions">${stepper}</div>
         </div>

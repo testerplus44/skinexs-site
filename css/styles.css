@@ -337,7 +337,6 @@ img {
 .site-header .logo-mark {
   width: 42px;
   height: 42px;
-  font-size: 1.05rem;
   border-radius: 11px;
 }
 
@@ -514,14 +513,30 @@ img {
 }
 
 .logo-mark {
-  width: 36px;
-  height: 36px;
+  width: 40px;
+  height: 40px;
+  flex-shrink: 0;
+  display: block;
   border-radius: 10px;
+  overflow: hidden;
+}
+
+.logo-mark-img {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: contain;
+}
+
+/* Fallback, если SVG не загрузился */
+.logo-mark:not(:has(.logo-mark-img)) {
   background: linear-gradient(135deg, var(--gold), var(--gold-dim));
   color: #1a1208;
   display: grid;
   place-items: center;
   font-size: 1rem;
+  font-weight: 800;
+  font-family: var(--font-display);
 }
 
 .nav {
@@ -1550,6 +1565,7 @@ a.btn[hidden] {
 .catalog-grid--v2 {
   grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
   gap: 16px;
+  align-items: stretch;
 }
 
 @media (min-width: 1200px) {
@@ -1587,6 +1603,7 @@ a.btn[hidden] {
 }
 
 .cs-card--v2 {
+  height: 100%;
   border-radius: 14px;
   border-color: rgba(69, 78, 116, 0.5);
   background: linear-gradient(180deg, #161824, #12131a);
@@ -1646,15 +1663,60 @@ a.btn[hidden] {
 .cs-card-body--v2 {
   padding: 12px 12px 10px;
   gap: 8px;
-  /* Не растягивать тело карточки на всю высоту ряда — иначе пустота под ценой */
-  flex: 0 1 auto;
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
   min-height: 0;
 }
 
-.cs-card-body--v2 .cs-card-name {
+.cs-card-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  min-width: 0;
+  flex: 0 0 auto;
+  min-height: 40px;
+}
+
+.cs-card-body--v2 .cs-card-title-row .cs-card-name {
+  flex: 1 1 auto;
+  min-width: 0;
+  margin: 0;
   min-height: auto;
-  -webkit-line-clamp: 2;
-  margin-bottom: 4px;
+  display: block;
+  -webkit-line-clamp: unset;
+  -webkit-box-orient: unset;
+  overflow: hidden;
+}
+
+.cs-card-body--v2 .cs-card-title-row .cs-card-name-link {
+  display: block;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.cs-card-title-price {
+  flex: 0 0 auto;
+  max-width: 46%;
+  text-align: right;
+  min-height: 34px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-end;
+}
+
+.cs-card-title-price .cs-card-price,
+.cs-card-title-price .cs-card-price-wrap {
+  white-space: nowrap;
+}
+
+.cs-card-title-price .cs-card-price-wrap {
+  max-width: 100%;
+  min-height: 34px;
+  justify-content: center;
 }
 
 .cs-card-foot {
@@ -1663,6 +1725,10 @@ a.btn[hidden] {
   justify-content: space-between;
   gap: 10px;
   margin-top: 4px;
+}
+
+.cs-card-foot--price-only {
+  justify-content: flex-end;
 }
 
 .cs-card-foot-left {
@@ -1748,10 +1814,13 @@ a.btn[hidden] {
   text-decoration: line-through;
 }
 
-.cs-card-actions {
-  margin-top: 10px;
+.cs-card-body--v2 .cs-card-actions {
+  margin-top: auto;
+  padding-top: 10px;
+  flex-shrink: 0;
   display: flex;
-  align-items: center;
+  align-items: stretch;
+  min-height: 42px;
 }
 
 .cs-card-stepper {
@@ -2011,6 +2080,7 @@ a.btn[hidden] {
 
 .cs-card-media-link {
   display: block;
+  flex-shrink: 0;
   color: inherit;
   text-decoration: none;
 }
@@ -8339,7 +8409,6 @@ body.drawer-open {
   .site-header .logo-mark {
     width: 38px;
     height: 38px;
-    font-size: 0.95rem;
   }
 
   .site-header .logo {
