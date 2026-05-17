@@ -160,6 +160,11 @@ app.get("/collections", (req, res) => {
   }
 });
 
+app.get("/favicon.ico", (req, res) => {
+  res.type("image/svg+xml");
+  res.sendFile(path.join(ROOT, "assets/brand/favicon.svg"));
+});
+
 /** Чистые URL без .html */
 const CLEAN_PAGE_ROUTES = [
   ["/", "index.html"],
