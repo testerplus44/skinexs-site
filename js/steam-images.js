@@ -33,7 +33,10 @@
     var icon = String(iconUrl).trim();
     if (/^https?:\/\//i.test(icon)) return icon;
     icon = icon.replace(/^\//, "");
-    var suffix = sizeSuffix && String(sizeSuffix).trim() ? String(sizeSuffix).trim() : DEFAULT_SIZE;
+    if (sizeSuffix === "" || sizeSuffix === "raw") {
+      return STEAM_ECONOMY_BASE + icon;
+    }
+    var suffix = sizeSuffix != null && String(sizeSuffix).trim() ? String(sizeSuffix).trim() : DEFAULT_SIZE;
     if (suffix.charAt(0) !== "/") suffix = "/" + suffix;
     return STEAM_ECONOMY_BASE + icon + suffix;
   }
@@ -43,9 +46,33 @@
     return String(item.icon_url_large || item.iconUrlLarge || "").trim();
   }
 
-  /** Превью для страницы товара — без квадратного кадра (типичное 330×192). */
+  /** Страница товара — оригинал с CDN без принудительного квадрата. */
   function getSteamImageUrlProduct(iconUrl) {
-    return getSteamImageUrl(iconUrl, "330x192");
+    return getSteamImageUrl(iconUrl, "raw");
+  }
+
+  /** Подрезка типичного отступа слева у economy-картинок Valve. */
+  function initProductImageFrame(img) {
+    if (!img || img.tagName !== "IMG") return;
+    var shell = img.closest(".product-img-shell");
+    if (!shell) return;
+    var media = shell.closest(".product-media");
+    var isSteam = media && media.classList.contains("product-media--steam");
+    var src = String(img.currentSrc || img.src || "");
+    if (!isSteam && src.indexOf("steamstatic.com") < 0) return;
+    shell.classList.add("product-img-shell--fitted");
+    function apply() {
+      if (!img.naturalWidth || !img.naturalHeight) return;
+      var ratio = img.naturalWidth / img.naturalHeight;
+      if (ratio > 1.12) {
+        shell.classList.add("product-img-shell--wide");
+        shell.style.aspectRatio = "330 / 192";
+      } else {
+        shell.style.aspectRatio = img.naturalWidth + " / " + img.naturalHeight;
+      }
+    }
+    if (img.complete) apply();
+    else img.addEventListener("load", apply, { once: true });
   }
 
   function resolveItemImageUrl(item) {
@@ -116,6 +143,7 @@
     placeholderEmoji: placeholderEmoji,
     placeholderHtml: placeholderHtml,
     onImgError: onImgError,
+    initProductImageFrame: initProductImageFrame,
     escAttr: escAttr,
   };
 

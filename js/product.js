@@ -413,6 +413,11 @@
       </article>
     `;
 
+    const prodImg = mount.querySelector(".product-full-img");
+    if (prodImg && window.SkinexSteamImages && typeof SkinexSteamImages.initProductImageFrame === "function") {
+      SkinexSteamImages.initProductImageFrame(prodImg);
+    }
+
     const btn = document.getElementById("productAddBtn");
     if (btn) btn.addEventListener("click", () => addToCart(item.id));
 
