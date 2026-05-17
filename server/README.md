@@ -91,7 +91,10 @@ npm run steam-bot
 ## API
 
 - `GET /api/health` — проверка БД и uptime (для мониторинга).
-- `GET /api/v1/catalog` — каталог из SQLite (после seed — копия `js/data.js`).
+- `GET /api/v1/catalog` — каталог из SQLite (после seed — копия `js/data.js`). Ответ с `Cache-Control: public, max-age=120`. В каждом товаре: `steam_market_hash_name`, `icon_url_large` (превью через Steam CDN).
+- `POST /api/v1/admin/catalog/import` — импорт одного предмета или массива: `name`, `steam_market_hash_name`, `icon_url_large`, `rarity`, `price`, опционально `hero`, `id`, `collectionId`.
+- `GET /api/v1/public/home-banners` — баннеры карусели на главной (только включённые, по `sort_order`).
+- `GET /api/v1/admin/home-banners`, `POST /api/v1/admin/home-banners`, `PUT /api/v1/admin/home-banners/:id`, `DELETE /api/v1/admin/home-banners/:id` — управление баннерами (админ). Таблица `home_banners`.
 - `GET /api/v1/public/steam-topup-settings` — публичные цифры для `steam-topup.html`: комиссия моментального пополнения (%), цена ключа (₽), профит клиента для оценки баланса Steam (%).
 - `POST /api/v1/public/steam-topup/keys-intent` — намерение оплатить выгодное пополнение (для дашборда); JSON: `keyCount`, `amountSiteRub`, `amountSteamRub`, опционально `tradeUrl`, `payMethod`.
 - `GET /api/v1/admin/steam-topup-settings`, `PUT /api/v1/admin/steam-topup-settings` — чтение/сохранение настроек Steam (админ). Таблица `steam_topup_settings`.

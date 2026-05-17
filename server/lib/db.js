@@ -184,6 +184,19 @@ function migrate() {
     CREATE INDEX IF NOT EXISTS idx_steam_keys_orders_user ON steam_keys_orders(user_id);
     CREATE INDEX IF NOT EXISTS idx_steam_keys_orders_created ON steam_keys_orders(created_at DESC);
     CREATE INDEX IF NOT EXISTS idx_steam_keys_orders_status ON steam_keys_orders(status);
+    CREATE TABLE IF NOT EXISTS home_banners (
+      id TEXT PRIMARY KEY,
+      badge TEXT NOT NULL DEFAULT '',
+      title TEXT NOT NULL DEFAULT '',
+      meta TEXT NOT NULL DEFAULT '',
+      image_url TEXT NOT NULL DEFAULT '',
+      link_href TEXT NOT NULL DEFAULT '',
+      sort_order INTEGER NOT NULL DEFAULT 0,
+      enabled INTEGER NOT NULL DEFAULT 1,
+      created_at INTEGER NOT NULL,
+      updated_at INTEGER NOT NULL
+    );
+    CREATE INDEX IF NOT EXISTS idx_home_banners_sort ON home_banners(sort_order ASC, created_at ASC);
   `);
   try {
     db.prepare("SELECT balance_rub FROM users LIMIT 1").get();
@@ -191,6 +204,36 @@ function migrate() {
     db.exec("ALTER TABLE users ADD COLUMN balance_rub INTEGER NOT NULL DEFAULT 0");
   }
   migrateSteamKeysOrdersNullableUserId();
+  migrateCatalogSteamColumns();
+}
+
+function migrateCatalogSteamColumns() {
+  try {
+    db.prepare("SELECT steam_market_hash_name FROM catalog_items LIMIT 1").get();
+  } catch (e) {
+    db.exec(`
+      ALTER TABLE catalog_items ADD COLUMN steam_market_hash_name TEXT NOT NULL DEFAULT '';
+      ALTER TABLE catalog_items ADD COLUMN icon_url_large TEXT NOT NULL DEFAULT '';
+    `);
+  }
+  try {
+    const rows = db.prepare("SELECT id, json FROM catalog_items").all();
+    const upd = db.prepare(
+      "UPDATE catalog_items SET steam_market_hash_name = ?, icon_url_large = ? WHERE id = ?",
+    );
+    rows.forEach((row) => {
+      try {
+        const o = JSON.parse(row.json);
+        const hash = String(o.steam_market_hash_name || o.steamMarketHashName || "").trim();
+        const icon = String(o.icon_url_large || o.iconUrlLarge || "").trim();
+        if (hash || icon) upd.run(hash, icon, row.id);
+      } catch (err) {
+        /* skip bad json */
+      }
+    });
+  } catch (e2) {
+    /* catalog table may be empty */
+  }
 }
 
 /** Гостевые заказы ключей: user_id может быть NULL (без регистрации на сайте). */

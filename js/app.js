@@ -168,8 +168,12 @@
           if (!item || qty < 1) return;
           const line = document.createElement("div");
           line.className = "cart-line";
+          const cartThumb =
+            window.SkinexSteamImages && SkinexSteamImages.hasItemImage(item)
+              ? `<img class="cart-line-thumb" src="${SkinexSteamImages.escAttr(SkinexSteamImages.resolveItemImageUrl(item))}" alt="" loading="lazy" decoding="async" data-fallback-icon="${SkinexSteamImages.escAttr(SkinexSteamImages.placeholderEmoji(item))}" onerror="SkinexSteamImages.onImgError(this)" />`
+              : `<span class="cart-line-icon" aria-hidden="true">${item.icon}</span>`;
           line.innerHTML = `
-            <span class="cart-line-icon" aria-hidden="true">${item.icon}</span>
+            ${cartThumb}
             <div class="cart-line-info">
               <strong><a class="cart-line-title" href="${productUrl(id)}">${escapeHtml(item.name)}</a></strong>
               <span>${qty} × ${formatPrice(displayPriceForItem(item))}</span>
@@ -501,14 +505,21 @@
       const badgeCls = U ? U.rarityBadgeClass(item.rarity) : "cs-badge";
       const rLabel = (U && U.rarityLabels[item.rarity]) || item.rarity;
       const pUrl = productUrl(item.id);
-      const imgHref = U && U.validHttpUrl ? U.validHttpUrl(item.imageUrl || "") : "";
-      const mediaClass = imgHref ? "cs-card-media cs-card-media--image" : "cs-card-media";
+      const SI = window.SkinexSteamImages;
+      const imgHref = SI ? SI.resolveItemImageUrl(item) : U && U.validHttpUrl ? U.validHttpUrl(item.imageUrl || "") : "";
+      const isSteam = SI && SI.isSteamCdnImage(item);
+      const mediaClass = imgHref
+        ? "cs-card-media cs-card-media--image" + (isSteam ? " cs-card-media--steam " + SI.rarityMediaClass(item.rarity) : "")
+        : "cs-card-media";
       const rarityOnImage = !imgHref
         ? `<span class="${badgeCls} cs-card-badge-rarity">${escapeHtml(rLabel)}</span>`
         : "";
+      const fallbackIcon = SI ? SI.placeholderEmoji(item) : item.icon || "📦";
       const mediaInner = imgHref
-        ? `<div class="cs-card-img-shell"><img class="cs-card-img" src=${JSON.stringify(imgHref)} alt=${JSON.stringify(item.name || "")} loading="lazy" decoding="async" /></div>`
-        : `<span class="cs-card-emoji" aria-hidden="true">${item.icon || "📦"}</span>`;
+        ? `<div class="cs-card-img-shell"><img class="cs-card-img cs-steam-img" src=${JSON.stringify(imgHref)} alt=${JSON.stringify(item.name || "")} loading="lazy" decoding="async" data-fallback-icon=${JSON.stringify(fallbackIcon)} onerror="SkinexSteamImages.onImgError(this)" /></div>`
+        : SI
+          ? SI.placeholderHtml(item)
+          : `<span class="cs-card-emoji cs-item-placeholder" aria-hidden="true">${item.icon || "📦"}</span>`;
       const listPrice = Number(item.listPrice);
       const catalogBase = Number(item.price);
       const disp = displayPriceForItem(item);

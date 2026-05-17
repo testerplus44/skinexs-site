@@ -67,6 +67,7 @@
 
   var Acc = window.SkinexAccount;
   var Site = window.SkinexSiteSettings;
+  var HomeBanners = window.SkinexHomeBanners;
   var Hints = window.SkinexHintsStore;
   var Meta = window.SkinexCatalogMeta;
 
@@ -95,6 +96,19 @@
   var hintFieldEnabled = document.getElementById("hintFieldEnabled");
   var hintEditorReset = document.getElementById("hintEditorReset");
   var adminHintEditorNote = document.getElementById("adminHintEditorNote");
+  var adminBannerForm = document.getElementById("adminBannerForm");
+  var adminBannerFormNote = document.getElementById("adminBannerFormNote");
+  var adminBannersBody = document.getElementById("adminBannersBody");
+  var bannerEditorId = document.getElementById("bannerEditorId");
+  var bannerFieldBadge = document.getElementById("bannerFieldBadge");
+  var bannerFieldTitle = document.getElementById("bannerFieldTitle");
+  var bannerFieldMeta = document.getElementById("bannerFieldMeta");
+  var bannerFieldImageUrl = document.getElementById("bannerFieldImageUrl");
+  var bannerFieldLinkHref = document.getElementById("bannerFieldLinkHref");
+  var bannerFieldSort = document.getElementById("bannerFieldSort");
+  var bannerFieldEnabled = document.getElementById("bannerFieldEnabled");
+  var bannerFormSubmitBtn = document.getElementById("bannerFormSubmitBtn");
+  var bannerFormResetBtn = document.getElementById("bannerFormResetBtn");
 
   function syncAdminTabButtons() {
     TAB_KEYS.forEach(function (k) {
@@ -142,7 +156,10 @@
     if (which === "traders") renderTradersTable();
     if (which === "orders") renderOrdersTable();
     if (which === "dashboard") renderDashboard();
-    if (which === "site") loadSiteForm();
+    if (which === "site") {
+      loadSiteForm();
+      loadBannersAdmin();
+    }
     if (which === "steam") loadSteamTopupForm();
     if (which === "hints") renderHintsTable();
     if (which === "filters") renderSidebarMetaTables();
@@ -2259,6 +2276,120 @@
     if (adminSiteFormNote) adminSiteFormNote.textContent = "";
   }
 
+  function resetBannerForm() {
+    if (bannerEditorId) bannerEditorId.value = "";
+    if (bannerFieldBadge) bannerFieldBadge.value = "";
+    if (bannerFieldTitle) bannerFieldTitle.value = "";
+    if (bannerFieldMeta) bannerFieldMeta.value = "";
+    if (bannerFieldImageUrl) bannerFieldImageUrl.value = "";
+    if (bannerFieldLinkHref) bannerFieldLinkHref.value = "";
+    if (bannerFieldSort) bannerFieldSort.value = "0";
+    if (bannerFieldEnabled) bannerFieldEnabled.checked = true;
+    if (bannerFormSubmitBtn) bannerFormSubmitBtn.textContent = "Добавить баннер";
+    if (adminBannerFormNote) {
+      adminBannerFormNote.textContent = "";
+      adminBannerFormNote.style.color = "";
+    }
+  }
+
+  function fillBannerForm(b) {
+    if (!b) return resetBannerForm();
+    if (bannerEditorId) bannerEditorId.value = b.id || "";
+    if (bannerFieldBadge) bannerFieldBadge.value = b.badge || "";
+    if (bannerFieldTitle) bannerFieldTitle.value = b.title || "";
+    if (bannerFieldMeta) bannerFieldMeta.value = b.meta || "";
+    if (bannerFieldImageUrl) bannerFieldImageUrl.value = b.imageUrl || "";
+    if (bannerFieldLinkHref) bannerFieldLinkHref.value = b.linkHref || "";
+    if (bannerFieldSort) bannerFieldSort.value = String(b.sortOrder != null ? b.sortOrder : 0);
+    if (bannerFieldEnabled) bannerFieldEnabled.checked = b.enabled !== false;
+    if (bannerFormSubmitBtn) bannerFormSubmitBtn.textContent = "Сохранить изменения";
+    if (adminBannerFormNote) {
+      adminBannerFormNote.textContent = "";
+      adminBannerFormNote.style.color = "";
+    }
+  }
+
+  function renderBannersTable(list) {
+    if (!adminBannersBody || !HomeBanners) return;
+    var banners = (list || HomeBanners.getBanners()).slice();
+    banners.sort(function (a, b) {
+      if (a.sortOrder !== b.sortOrder) return a.sortOrder - b.sortOrder;
+      return String(a.title || "").localeCompare(String(b.title || ""), "ru");
+    });
+    if (!banners.length) {
+      adminBannersBody.innerHTML =
+        '<tr><td colspan="4" class="admin-table-empty">Баннеров нет — добавьте первый в форме выше.</td></tr>';
+      return;
+    }
+    adminBannersBody.innerHTML = "";
+    banners.forEach(function (b) {
+      var tr = document.createElement("tr");
+      var td0 = document.createElement("td");
+      td0.textContent = String(b.sortOrder != null ? b.sortOrder : 0);
+      var td1 = document.createElement("td");
+      td1.textContent = b.title || "—";
+      var td2 = document.createElement("td");
+      td2.textContent = b.enabled !== false ? "Да" : "Нет";
+      var td3 = document.createElement("td");
+      td3.className = "admin-table-actions";
+      var b1 = document.createElement("button");
+      b1.type = "button";
+      b1.className = "btn btn-outline btn-sm";
+      b1.textContent = "Изменить";
+      b1.setAttribute("data-banner-edit", b.id);
+      var b2 = document.createElement("button");
+      b2.type = "button";
+      b2.className = "btn btn-outline btn-sm";
+      b2.textContent = "Удалить";
+      b2.setAttribute("data-banner-del", b.id);
+      td3.appendChild(b1);
+      td3.appendChild(document.createTextNode(" "));
+      td3.appendChild(b2);
+      tr.appendChild(td0);
+      tr.appendChild(td1);
+      tr.appendChild(td2);
+      tr.appendChild(td3);
+      adminBannersBody.appendChild(tr);
+    });
+  }
+
+  function loadBannersAdmin() {
+    if (!HomeBanners) return;
+    if (adminBannerFormNote) {
+      adminBannerFormNote.textContent = "";
+      adminBannerFormNote.style.color = "";
+    }
+    if (window.SKINEX_USE_SERVER_API && typeof HomeBanners.fetchAdmin === "function") {
+      if (adminBannerFormNote) adminBannerFormNote.textContent = "Загрузка баннеров…";
+      HomeBanners.fetchAdmin()
+        .then(function (out) {
+          renderBannersTable(out.banners);
+          if (adminBannerFormNote) adminBannerFormNote.textContent = "";
+        })
+        .catch(function (err) {
+          renderBannersTable(HomeBanners.getBanners());
+          if (adminBannerFormNote) {
+            adminBannerFormNote.style.color = "#f87171";
+            adminBannerFormNote.textContent = err.message || "Ошибка загрузки (показан локальный кэш).";
+          }
+        });
+      return;
+    }
+    renderBannersTable(HomeBanners.getBanners());
+  }
+
+  function readBannerFormPatch() {
+    return {
+      badge: bannerFieldBadge ? String(bannerFieldBadge.value || "") : "",
+      title: bannerFieldTitle ? String(bannerFieldTitle.value || "").trim() : "",
+      meta: bannerFieldMeta ? String(bannerFieldMeta.value || "") : "",
+      imageUrl: bannerFieldImageUrl ? String(bannerFieldImageUrl.value || "").trim() : "",
+      linkHref: bannerFieldLinkHref ? String(bannerFieldLinkHref.value || "").trim() : "",
+      sortOrder: bannerFieldSort ? parseInt(String(bannerFieldSort.value || "0"), 10) : 0,
+      enabled: bannerFieldEnabled ? !!bannerFieldEnabled.checked : true,
+    };
+  }
+
   function adminApiUrl(path) {
     var base = window.SKINEX_API_BASE != null ? String(window.SKINEX_API_BASE).trim().replace(/\/?$/, "") : "";
     if (!path || path.charAt(0) !== "/") path = "/" + (path || "");
@@ -2547,6 +2678,226 @@
       }
     });
 
+  bannerFormResetBtn &&
+    bannerFormResetBtn.addEventListener("click", function () {
+      resetBannerForm();
+    });
+
+  adminBannersBody &&
+    adminBannersBody.addEventListener("click", function (ev) {
+      var t = ev.target;
+      if (!HomeBanners || !(t instanceof HTMLElement)) return;
+      var editId = t.getAttribute("data-banner-edit");
+      if (editId) {
+        var found = HomeBanners.getBanners().find(function (x) {
+          return String(x.id) === String(editId);
+        });
+        if (found) {
+          fillBannerForm(found);
+          if (bannerFieldTitle) bannerFieldTitle.focus();
+        }
+        return;
+      }
+      var delId = t.getAttribute("data-banner-del");
+      if (delId) {
+        if (!window.confirm("Удалить этот баннер?")) return;
+        if (adminBannerFormNote) {
+          adminBannerFormNote.textContent = "";
+          adminBannerFormNote.style.color = "";
+        }
+        HomeBanners.removeBanner(delId)
+          .then(function () {
+            resetBannerForm();
+            loadBannersAdmin();
+            if (adminBannerFormNote) {
+              adminBannerFormNote.style.color = "#86d759";
+              adminBannerFormNote.textContent = "Баннер удалён. Обновите главную.";
+            }
+          })
+          .catch(function (err) {
+            if (adminBannerFormNote) {
+              adminBannerFormNote.style.color = "#f87171";
+              adminBannerFormNote.textContent = err.message || "Ошибка удаления.";
+            }
+          });
+      }
+    });
+
+  adminBannerForm &&
+    adminBannerForm.addEventListener("submit", function (e) {
+      e.preventDefault();
+      if (!HomeBanners) return;
+      if (adminBannerFormNote) {
+        adminBannerFormNote.textContent = "";
+        adminBannerFormNote.style.color = "";
+      }
+      var patch = readBannerFormPatch();
+      if (!patch.title) {
+        if (adminBannerFormNote) {
+          adminBannerFormNote.style.color = "#f87171";
+          adminBannerFormNote.textContent = "Укажите заголовок баннера.";
+        }
+        return;
+      }
+      if (!isFinite(patch.sortOrder)) patch.sortOrder = 0;
+      var editId = bannerEditorId ? String(bannerEditorId.value || "").trim() : "";
+      var promise = editId
+        ? HomeBanners.updateBanner(editId, patch)
+        : HomeBanners.createBanner(patch);
+      promise
+        .then(function () {
+          resetBannerForm();
+          loadBannersAdmin();
+          if (adminBannerFormNote) {
+            adminBannerFormNote.style.color = "#86d759";
+            adminBannerFormNote.textContent = "Сохранено. Обновите главную, чтобы увидеть карусель.";
+          }
+        })
+        .catch(function (err) {
+          if (adminBannerFormNote) {
+            adminBannerFormNote.style.color = "#f87171";
+            adminBannerFormNote.textContent = err.message || "Ошибка сохранения.";
+          }
+        });
+    });
+
+  var adminCatalogImportForm = document.getElementById("adminCatalogImportForm");
+  var catalogImportJson = document.getElementById("catalogImportJson");
+  var catalogImportNote = document.getElementById("catalogImportNote");
+
+  function refreshCatalogFromServer() {
+    if (!window.SKINEX_USE_SERVER_API || typeof fetch !== "function") return Promise.resolve();
+    return fetch(adminApiUrl("/api/v1/catalog"), { credentials: "include" })
+      .then(function (res) {
+        return res.json();
+      })
+      .then(function (list) {
+        if (Array.isArray(list) && Cat) {
+          Cat.saveCatalog(list);
+        }
+      });
+  }
+
+  function importCatalogLocal(payloads) {
+    var list = Cat.getCatalog().slice();
+    var saved = 0;
+    payloads.forEach(function (raw) {
+      if (!raw || typeof raw !== "object") return;
+      var name = String(raw.name || raw.steam_market_hash_name || "").trim();
+      if (!name) return;
+      var id = String(raw.id || "").trim() || newId();
+      var rarity = String(raw.rarity || "mythical").toLowerCase();
+      if (rarity.indexOf("arcana") >= 0) rarity = "arcana";
+      else if (rarity.indexOf("immortal") >= 0) rarity = "immortal";
+      else if (rarity.indexOf("mythical") >= 0) rarity = "mythical";
+      else if (["arcana", "immortal", "mythical"].indexOf(rarity) < 0) rarity = "mythical";
+      var iconLarge = String(raw.icon_url_large || raw.iconUrlLarge || "").trim();
+      var steamHash = String(raw.steam_market_hash_name || raw.steamMarketHashName || name).trim();
+      var item = Object.assign({}, raw, {
+        id: id,
+        name: name,
+        hero: String(raw.hero || "").trim(),
+        rarity: rarity,
+        price: Math.max(0, Math.round(Number(raw.price) || 0)),
+        icon: String(raw.icon || "📦").slice(0, 8),
+        steam_market_hash_name: steamHash,
+        steamMarketHashName: steamHash,
+        icon_url_large: iconLarge,
+        iconUrlLarge: iconLarge,
+        collectionId: String(raw.collectionId || "general"),
+        category: String(raw.category || "tradeable"),
+        traderListingsAllowed: raw.traderListingsAllowed !== false,
+      });
+      var idx = list.findIndex(function (x) {
+        return String(x.id) === String(id);
+      });
+      if (idx >= 0) list[idx] = item;
+      else list.push(item);
+      saved++;
+    });
+    Cat.saveCatalog(list);
+    return saved;
+  }
+
+  adminCatalogImportForm &&
+    adminCatalogImportForm.addEventListener("submit", function (e) {
+      e.preventDefault();
+      if (catalogImportNote) {
+        catalogImportNote.textContent = "";
+        catalogImportNote.style.color = "";
+      }
+      var rawText = catalogImportJson ? String(catalogImportJson.value || "").trim() : "";
+      if (!rawText) {
+        if (catalogImportNote) {
+          catalogImportNote.style.color = "#f87171";
+          catalogImportNote.textContent = "Вставьте JSON.";
+        }
+        return;
+      }
+      var parsed;
+      try {
+        parsed = JSON.parse(rawText);
+      } catch (err) {
+        if (catalogImportNote) {
+          catalogImportNote.style.color = "#f87171";
+          catalogImportNote.textContent = "Некорректный JSON: " + (err.message || "");
+        }
+        return;
+      }
+      var payloads = Array.isArray(parsed) ? parsed : [parsed];
+      if (window.SKINEX_USE_SERVER_API && typeof fetch === "function") {
+        if (catalogImportNote) catalogImportNote.textContent = "Импорт…";
+        fetch(adminApiUrl("/api/v1/admin/catalog/import"), {
+          method: "POST",
+          credentials: "include",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payloads),
+        })
+          .then(function (res) {
+            return res.json().then(function (data) {
+              return { res: res, data: data };
+            });
+          })
+          .then(function (r) {
+            if (!r.res.ok || !r.data || !r.data.ok) {
+              throw new Error((r.data && r.data.message) || "Ошибка импорта.");
+            }
+            return refreshCatalogFromServer().then(function () {
+              return r.data;
+            });
+          })
+          .then(function (data) {
+            if (catalogImportJson) catalogImportJson.value = "";
+            renderTable();
+            renderDashboard();
+            if (catalogImportNote) {
+              catalogImportNote.style.color = "#86d759";
+              var errN = (data.errors && data.errors.length) || 0;
+              catalogImportNote.textContent =
+                "Импортировано: " +
+                (data.saved || 0) +
+                (errN ? ". Ошибок: " + errN : "") +
+                ". Обновите главную.";
+            }
+          })
+          .catch(function (err) {
+            if (catalogImportNote) {
+              catalogImportNote.style.color = "#f87171";
+              catalogImportNote.textContent = err.message || "Ошибка.";
+            }
+          });
+        return;
+      }
+      var n = importCatalogLocal(payloads);
+      if (catalogImportJson) catalogImportJson.value = "";
+      renderTable();
+      renderDashboard();
+      if (catalogImportNote) {
+        catalogImportNote.style.color = "#86d759";
+        catalogImportNote.textContent = "Импортировано локально: " + n + ". Обновите главную.";
+      }
+    });
+
   adminSteamTopupForm &&
     adminSteamTopupForm.addEventListener("submit", function (e) {
       e.preventDefault();
@@ -2676,6 +3027,10 @@
       document.getElementById("fieldRarity").value = item.rarity || "mythical";
       document.getElementById("fieldPrice").value = Number(item.price) || 0;
       document.getElementById("fieldIcon").value = item.icon || "📦";
+      var fSteam = document.getElementById("fieldSteamMarketHashName");
+      var fIcon = document.getElementById("fieldIconUrlLarge");
+      if (fSteam) fSteam.value = item.steam_market_hash_name || item.steamMarketHashName || "";
+      if (fIcon) fIcon.value = item.icon_url_large || item.iconUrlLarge || "";
       document.getElementById("fieldImageUrl").value = item.imageUrl || "";
       document.getElementById("fieldVideoUrl").value = item.videoUrl || "";
       document.getElementById("fieldDescription").value = item.description || "";
@@ -2718,9 +3073,10 @@
     }
     tableBody.innerHTML = list
       .map(function (it) {
+        var steamIcon = String(it.icon_url_large || it.iconUrlLarge || "").trim();
         var img = validHttp(it.imageUrl);
         var vid = validHttp(it.videoUrl);
-        var media = img ? "IMG" : vid ? "VIDEO" : "—";
+        var media = steamIcon ? "STEAM" : img ? "IMG" : vid ? "VIDEO" : "—";
         var itt = it.itemType || Tax.defaultItemTypeFromRarity(it.rarity);
         return (
           "<tr>" +
@@ -2800,6 +3156,14 @@
     var rarity = String(document.getElementById("fieldRarity").value || "mythical");
     var price = Math.max(0, Math.floor(Number(document.getElementById("fieldPrice").value) || 0));
     var icon = String(document.getElementById("fieldIcon").value || "").trim() || "📦";
+    var steamMarketHashName = String(
+      (document.getElementById("fieldSteamMarketHashName") &&
+        document.getElementById("fieldSteamMarketHashName").value) ||
+        "",
+    ).trim();
+    var iconUrlLarge = String(
+      (document.getElementById("fieldIconUrlLarge") && document.getElementById("fieldIconUrlLarge").value) || "",
+    ).trim();
     var imageUrl = validHttp(document.getElementById("fieldImageUrl").value);
     var videoUrl = validHttp(document.getElementById("fieldVideoUrl").value);
     var description = String(document.getElementById("fieldDescription").value || "").trim();
@@ -2834,6 +3198,10 @@
       rarity: rarity,
       price: price,
       icon: icon.slice(0, 8),
+      steam_market_hash_name: steamMarketHashName || name,
+      steamMarketHashName: steamMarketHashName || name,
+      icon_url_large: iconUrlLarge,
+      iconUrlLarge: iconUrlLarge,
       imageUrl: imageUrl || "",
       videoUrl: videoUrl || "",
       description: description,

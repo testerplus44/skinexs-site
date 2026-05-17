@@ -7,6 +7,7 @@ const vm = require("vm");
 const bcrypt = require("bcryptjs");
 const crypto = require("crypto");
 const { getDb } = require("./db");
+const { saveCatalogItem } = require("./catalog");
 
 const ROOT = path.join(__dirname, "..", "..");
 
@@ -24,11 +25,10 @@ function seedCatalogIfEmpty() {
   const n = db.prepare("SELECT COUNT(*) AS c FROM catalog_items").get();
   if (n && n.c > 0) return;
   const rows = loadCatalogFromDataJs();
-  const ins = db.prepare("INSERT OR REPLACE INTO catalog_items (id, json) VALUES (?, ?)");
   const tx = db.transaction((items) => {
     for (const it of items) {
       if (!it || !it.id) continue;
-      ins.run(String(it.id), JSON.stringify(it));
+      saveCatalogItem(db, it);
     }
   });
   tx(rows);

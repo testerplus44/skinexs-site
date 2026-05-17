@@ -12,6 +12,8 @@ const yk = require("../lib/yookassa");
 const avatarix = require("../lib/avatarix");
 const steamTopupSettings = require("../lib/steam-topup-settings");
 const steamTopupEvents = require("../lib/steam-topup-events");
+const homeBanners = require("../lib/home-banners");
+const catalogLib = require("../lib/catalog");
 const steamKeysDelivery = require("../lib/steam-keys-delivery");
 
 const router = express.Router();
@@ -488,6 +490,15 @@ router.get("/public/steam-topup-settings", (req, res) => {
   }
 });
 
+router.get("/public/home-banners", (req, res) => {
+  try {
+    const banners = homeBanners.listHomeBanners({ publicOnly: true });
+    res.json({ ok: true, banners });
+  } catch (e) {
+    res.status(500).json({ ok: false, message: String(e.message || e) });
+  }
+});
+
 /** Лог намерения оплатить выгодное пополнение (ключи) — для дашборда; не подтверждение оплаты. */
 router.post("/public/steam-topup/keys-intent", (req, res) => {
   try {
@@ -528,10 +539,14 @@ router.post("/public/steam-topup/keys-intent", (req, res) => {
 // ——— Catalog ———
 
 router.get("/catalog", (req, res) => {
-  const db = getDb();
-  const rows = db.prepare("SELECT json FROM catalog_items").all();
-  const list = rows.map((r) => JSON.parse(r.json));
-  res.json(list);
+  try {
+    const db = getDb();
+    const list = catalogLib.listCatalogItems(db);
+    res.set("Cache-Control", "public, max-age=120, stale-while-revalidate=600");
+    res.json(list);
+  } catch (e) {
+    res.status(500).json({ ok: false, message: String(e.message || e) });
+  }
 });
 
 router.put("/catalog/:id", requireAdmin, (req, res) => {
@@ -541,20 +556,47 @@ router.put("/catalog/:id", requireAdmin, (req, res) => {
   if (!body || typeof body !== "object") {
     return res.status(400).json({ ok: false, message: "Нет JSON товара." });
   }
-  const item = Object.assign({}, body, { id });
-  const db = getDb();
-  db.prepare("INSERT OR REPLACE INTO catalog_items (id, json) VALUES (?, ?)").run(id, JSON.stringify(item));
-  audit(req, "catalog.put", id);
-  res.json({ ok: true, item });
+  try {
+    const db = getDb();
+    const item = catalogLib.saveCatalogItem(db, Object.assign({}, body, { id }));
+    audit(req, "catalog.put", id);
+    res.json({ ok: true, item });
+  } catch (e) {
+    res.status(400).json({ ok: false, message: String(e.message || e) });
+  }
 });
 
 router.delete("/catalog/:id", requireAdmin, (req, res) => {
   const id = String(req.params.id || "");
   if (!id) return res.status(400).json({ ok: false, message: "Нет id." });
-  const db = getDb();
-  db.prepare("DELETE FROM catalog_items WHERE id = ?").run(id);
-  audit(req, "catalog.delete", id);
-  res.json({ ok: true });
+  try {
+    const db = getDb();
+    const ok = catalogLib.deleteCatalogItem(db, id);
+    if (!ok) return res.status(404).json({ ok: false, message: "Товар не найден." });
+    audit(req, "catalog.delete", id);
+    res.json({ ok: true });
+  } catch (e) {
+    res.status(500).json({ ok: false, message: String(e.message || e) });
+  }
+});
+
+/** Импорт товаров (один объект или массив) с полями Steam Economy. */
+router.post("/admin/catalog/import", requireAdmin, (req, res) => {
+  try {
+    const body = req.body;
+    const payloads = Array.isArray(body) ? body : body && body.items ? body.items : [body];
+    const db = getDb();
+    const result = catalogLib.importCatalogItems(db, payloads);
+    audit(req, "admin.catalog_import", JSON.stringify({ saved: result.saved.length, errors: result.errors.length }));
+    res.json({
+      ok: true,
+      saved: result.saved.length,
+      errors: result.errors,
+      items: result.saved,
+    });
+  } catch (e) {
+    res.status(500).json({ ok: false, message: String(e.message || e) });
+  }
 });
 
 // ——— Market ———
@@ -1251,6 +1293,47 @@ router.put("/admin/steam-topup-settings", requireAdmin, (req, res) => {
     });
     audit(req, "admin.steam_topup_settings", JSON.stringify(settings));
     res.json({ ok: true, settings });
+  } catch (e) {
+    res.status(500).json({ ok: false, message: String(e.message || e) });
+  }
+});
+
+router.get("/admin/home-banners", requireAdmin, (req, res) => {
+  try {
+    res.json({ ok: true, banners: homeBanners.listHomeBanners() });
+  } catch (e) {
+    res.status(500).json({ ok: false, message: String(e.message || e) });
+  }
+});
+
+router.post("/admin/home-banners", requireAdmin, (req, res) => {
+  try {
+    const banner = homeBanners.createHomeBanner(req.body || {});
+    if (!banner) return res.status(400).json({ ok: false, message: "Не удалось создать баннер." });
+    audit(req, "admin.home_banner_create", banner.id);
+    res.json({ ok: true, banner });
+  } catch (e) {
+    res.status(500).json({ ok: false, message: String(e.message || e) });
+  }
+});
+
+router.put("/admin/home-banners/:id", requireAdmin, (req, res) => {
+  try {
+    const banner = homeBanners.updateHomeBanner(req.params.id, req.body || {});
+    if (!banner) return res.status(404).json({ ok: false, message: "Баннер не найден." });
+    audit(req, "admin.home_banner_update", banner.id);
+    res.json({ ok: true, banner });
+  } catch (e) {
+    res.status(500).json({ ok: false, message: String(e.message || e) });
+  }
+});
+
+router.delete("/admin/home-banners/:id", requireAdmin, (req, res) => {
+  try {
+    const ok = homeBanners.deleteHomeBanner(req.params.id);
+    if (!ok) return res.status(404).json({ ok: false, message: "Баннер не найден." });
+    audit(req, "admin.home_banner_delete", String(req.params.id));
+    res.json({ ok: true });
   } catch (e) {
     res.status(500).json({ ok: false, message: String(e.message || e) });
   }

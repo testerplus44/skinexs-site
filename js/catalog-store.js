@@ -21,13 +21,30 @@
     return m[rarity] || "Mythical";
   }
 
+  function normalizeRarityKey(r) {
+    var s = String(r || "")
+      .trim()
+      .toLowerCase();
+    if (s === "arcana" || s.indexOf("arcana") >= 0) return "arcana";
+    if (s === "immortal" || s.indexOf("immortal") >= 0) return "immortal";
+    if (s === "mythical" || s.indexOf("mythical") >= 0) return "mythical";
+    return s || "mythical";
+  }
+
   function enrichItem(it) {
     if (!it || typeof it !== "object") return it;
     var copy = Object.assign({}, it);
+    copy.rarity = normalizeRarityKey(copy.rarity);
     copy.itemType = copy.itemType || defaultItemTypeFromRarity(copy.rarity);
     copy.hero = copy.hero != null ? String(copy.hero) : "";
     copy.collectionId = copy.collectionId != null ? String(copy.collectionId) : "general";
     copy.category = copy.category != null ? String(copy.category) : "tradeable";
+    var iconLarge = String(copy.icon_url_large || copy.iconUrlLarge || "").trim();
+    var steamHash = String(copy.steam_market_hash_name || copy.steamMarketHashName || "").trim();
+    copy.icon_url_large = iconLarge;
+    copy.iconUrlLarge = iconLarge;
+    copy.steam_market_hash_name = steamHash || copy.name || "";
+    copy.steamMarketHashName = copy.steam_market_hash_name;
     /** false — трейдеры не могут выставлять лоты; по умолчанию true */
     copy.traderListingsAllowed = copy.traderListingsAllowed !== false;
     return copy;

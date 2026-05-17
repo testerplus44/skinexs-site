@@ -335,11 +335,17 @@
       metaDesc.setAttribute("content", `${item.name} · ${item.hero} · от ${U.formatPrice(eff)} · Skinexs`);
     if (bcTitle) bcTitle.textContent = item.name;
 
-    const imgHref = U.validHttpUrl ? U.validHttpUrl(item.imageUrl || "") : "";
-    const mediaCls = imgHref ? "product-media product-media--image" : "product-media";
+    const SI = window.SkinexSteamImages;
+    const imgHref = SI ? SI.resolveItemImageUrl(item) : U.validHttpUrl ? U.validHttpUrl(item.imageUrl || "") : "";
+    const isSteam = SI && SI.isSteamCdnImage(item);
+    const mediaCls =
+      "product-media" +
+      (imgHref ? " product-media--image" : "") +
+      (isSteam ? " product-media--steam product-media--rarity-" + (item.rarity || "mythical") : "");
+    const fallbackIcon = SI ? SI.placeholderEmoji(item) : item.icon || "📦";
     const visual = imgHref
-      ? `<div class="product-img-shell"><img class="product-full-img" src=${JSON.stringify(imgHref)} alt=${JSON.stringify(item.name || "")} loading="lazy" decoding="async" /></div>`
-      : `<span class="product-emoji" aria-hidden="true">${item.icon || "📦"}</span>`;
+      ? `<div class="product-img-shell"><img class="product-full-img cs-steam-img" src=${JSON.stringify(imgHref)} alt=${JSON.stringify(item.name || "")} loading="lazy" decoding="async" data-fallback-icon=${JSON.stringify(fallbackIcon)} onerror="SkinexSteamImages.onImgError(this)" /></div>`
+      : `<span class="product-emoji cs-item-placeholder" aria-hidden="true">${item.icon || "📦"}</span>`;
 
     const videoBlock = buildVideoBlock();
 

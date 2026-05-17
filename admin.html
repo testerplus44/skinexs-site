@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="ru">
 <head>
   <meta charset="UTF-8" />
@@ -96,6 +96,21 @@
               <button type="button" class="btn btn-outline" id="btnResetCatalog">Сбросить к умолчанию</button>
             </div>
           </div>
+
+          <section class="admin-catalog-import" aria-labelledby="catalogImportHeading">
+            <h2 id="catalogImportHeading" class="admin-section-subtitle">Импорт из Steam Economy</h2>
+            <p class="admin-panel-lead admin-panel-lead--tight">
+              JSON одного предмета или массива. Поля: <code>name</code>, <code>steam_market_hash_name</code>, <code>icon_url_large</code>, <code>rarity</code>, <code>price</code>. Картинки грузятся с Steam CDN, на сервере не хранятся.
+            </p>
+            <form id="adminCatalogImportForm" class="admin-site-form" novalidate>
+              <label class="field">
+                <span>JSON</span>
+                <textarea id="catalogImportJson" rows="8" maxlength="500000" placeholder='{"name":"Fractal Horns of Inner Abysm","steam_market_hash_name":"…","icon_url_large":"-9a81…","rarity":"Arcana","price":27200}'></textarea>
+              </label>
+              <button type="submit" class="btn-cs-cart">Импортировать</button>
+              <p class="admin-taxonomy-note" id="catalogImportNote" role="status"></p>
+            </form>
+          </section>
 
           <section class="admin-taxonomy" aria-labelledby="taxHeading">
             <h2 id="taxHeading" class="admin-taxonomy-title">Справочники тегов</h2>
@@ -287,6 +302,64 @@
             <button type="submit" class="btn-cs-cart">Сохранить тексты</button>
             <p class="admin-taxonomy-note" id="adminSiteFormNote" role="status"></p>
           </form>
+
+          <div class="admin-site-banners-block">
+            <h2 class="admin-section-subtitle">Баннеры на главной</h2>
+            <p class="admin-panel-lead admin-panel-lead--tight">
+              Карусель справа от заголовка на главной. Переключение каждые 10 секунд. При серверном API данные хранятся в базе.
+            </p>
+            <form class="admin-site-form" id="adminBannerForm" novalidate>
+              <input type="hidden" id="bannerEditorId" value="" />
+              <div class="admin-form-grid admin-form-grid--2">
+                <label class="field">
+                  <span>Бейдж (например «Эксклюзив»)</span>
+                  <input type="text" id="bannerFieldBadge" maxlength="80" placeholder="Эксклюзив" />
+                </label>
+                <label class="field">
+                  <span>Порядок (число)</span>
+                  <input type="number" id="bannerFieldSort" value="0" step="1" />
+                </label>
+              </div>
+              <label class="field">
+                <span>Заголовок</span>
+                <input type="text" id="bannerFieldTitle" maxlength="200" required placeholder="Архивная коллекция" />
+              </label>
+              <label class="field">
+                <span>Подзаголовок</span>
+                <input type="text" id="bannerFieldMeta" maxlength="400" placeholder="Immortal · Mythical · …" />
+              </label>
+              <label class="field">
+                <span>URL картинки (https://…, необязательно)</span>
+                <input type="url" id="bannerFieldImageUrl" maxlength="2000" placeholder="https://…" />
+              </label>
+              <label class="field">
+                <span>Ссылка по клику (необязательно)</span>
+                <input type="text" id="bannerFieldLinkHref" maxlength="500" placeholder="#catalog или /product?id=…" />
+              </label>
+              <label class="admin-dash-check">
+                <input type="checkbox" id="bannerFieldEnabled" checked />
+                Показывать на сайте
+              </label>
+              <div class="admin-form-actions">
+                <button type="submit" class="btn-cs-cart" id="bannerFormSubmitBtn">Добавить баннер</button>
+                <button type="button" class="btn btn-outline" id="bannerFormResetBtn">Очистить форму</button>
+              </div>
+              <p class="admin-taxonomy-note" id="adminBannerFormNote" role="status"></p>
+            </form>
+            <div class="admin-table-wrap">
+              <table class="admin-table" aria-label="Баннеры главной">
+                <thead>
+                  <tr>
+                    <th scope="col">#</th>
+                    <th scope="col">Заголовок</th>
+                    <th scope="col">На сайте</th>
+                    <th scope="col">Действия</th>
+                  </tr>
+                </thead>
+                <tbody id="adminBannersBody"></tbody>
+              </table>
+            </div>
+          </div>
         </div>
 
         <div id="adminTabSteam" class="admin-tab-panel" hidden role="tabpanel" aria-labelledby="adminTabBtnSteam">
@@ -593,7 +666,15 @@
             <input type="text" name="icon" id="fieldIcon" maxlength="8" placeholder="🎁" />
           </label>
           <label class="field field-span2">
-            <span>URL картинки (https)</span>
+            <span>Steam market hash name</span>
+            <input type="text" name="steamMarketHashName" id="fieldSteamMarketHashName" maxlength="200" placeholder="Fractal Horns of Inner Abysm" />
+          </label>
+          <label class="field field-span2">
+            <span>Steam icon_url_large (hash из API)</span>
+            <input type="text" name="iconUrlLarge" id="fieldIconUrlLarge" maxlength="500" placeholder="-9a81dlWLwJ2UUGcVs…" />
+          </label>
+          <label class="field field-span2">
+            <span>URL картинки (https, запасной вариант)</span>
             <input type="url" name="imageUrl" id="fieldImageUrl" maxlength="2000" placeholder="https://…" />
           </label>
           <label class="field field-span2">
@@ -645,6 +726,8 @@
   <script src="js/market-offers-store.js"></script>
   <script src="js/reviews-store.js"></script>
   <script src="js/site-settings.js"></script>
+  <script src="js/steam-images.js"></script>
+  <script src="js/home-banners-store.js"></script>
   <script src="js/hints-store.js"></script>
   <script src="js/trader-applications-store.js"></script>
   <script src="js/admin-panel.js"></script>
