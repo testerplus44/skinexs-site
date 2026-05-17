@@ -2,7 +2,7 @@
 window.SKINEX_SELLER_EMAIL = "you@example.com";
 
 /**
- * Каталог. Поля description и details показываются на странице товара (product.html?id=…).
+ * Каталог. Поля description и details показываются на странице товара (/product?id=…).
  * rarity: immortal | mythical | arcana
  */
 window.SKINEX_CATALOG = [

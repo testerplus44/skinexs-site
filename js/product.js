@@ -433,7 +433,7 @@
       <div class="product-error">
         <h1>Товар не найден</h1>
         <p>Проверьте ссылку или вернитесь в каталог.</p>
-        <a class="btn btn-primary" href="index.html#catalog">В каталог</a>
+        <a class="btn btn-primary" href="/#catalog">В каталог</a>
       </div>
     `;
   }

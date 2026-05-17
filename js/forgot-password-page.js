@@ -12,7 +12,7 @@
   if (Auth && Auth.isLoggedIn && Auth.isLoggedIn()) {
     setMsg("Вы уже вошли. Перенаправление…", true);
     setTimeout(function () {
-      window.location.href = "index.html";
+      window.location.href = "/";
     }, 400);
     if (form) form.hidden = true;
     return;

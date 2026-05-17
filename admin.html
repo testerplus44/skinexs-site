@@ -1,9 +1,9 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ru">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <link rel="icon" href="assets/brand/favicon.svg" type="image/svg+xml" />
+  <link rel="icon" type="image/png" href="/assets/favicon.png" />
   <meta name="robots" content="noindex, nofollow" />
   <title>Админка — Skinexs</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -15,14 +15,14 @@
   <header class="site-header admin-header">
     <div class="container header-inner">
       <div class="header-left">
-        <a class="logo" href="index.html">
+        <a class="logo" href="/">
           <span class="logo-mark" aria-hidden="true"><img class="logo-mark-img" src="assets/brand/logo-mark.svg" width="40" height="40" alt="" /></span>
           <span class="logo-text">Skinexs</span>
         </a>
         <nav class="nav nav-primary" aria-label="Основное меню">
-          <a href="index.html#catalog">Каталог</a>
-          <a href="support.html">Поддержка</a>
-          <a href="reviews.html">Отзывы</a>
+          <a href="/#catalog">Каталог</a>
+          <a href="/support">Поддержка</a>
+          <a href="/reviews">Отзывы</a>
         </nav>
       </div>
       <div class="header-actions">
@@ -54,7 +54,7 @@
           </label>
           <button type="submit" class="btn-cs-cart admin-login-submit">Войти</button>
           <p class="admin-login-error" id="loginError" role="alert"></p>
-          <p class="admin-login-alt"><a href="auth.html?next=admin.html">Вход через общую страницу</a></p>
+          <p class="admin-login-alt"><a href="/auth?next=%2Fadmin">Вход через общую страницу</a></p>
         </form>
       </section>
 
@@ -293,7 +293,7 @@
           <div class="admin-users-tab-head">
             <h1 class="admin-page-title">Пополнение Steam</h1>
             <p class="admin-panel-lead">
-              Цифры подставляются на страницу <a href="steam-topup.html" target="_blank" rel="noopener">steam-topup.html</a>. Нужен запуск сайта через сервер API (<code>SKINEX_USE_SERVER_API</code>).
+              Цифры подставляются на страницу <a href="/steam-topup" target="_blank" rel="noopener">steam-topup.html</a>. Нужен запуск сайта через сервер API (<code>SKINEX_USE_SERVER_API</code>).
             </p>
           </div>
 
@@ -631,6 +631,7 @@
   <script src="js/data.js"></script>
   <script src="js/catalog-meta.js"></script>
   <script src="js/catalog-meta-store.js"></script>
+  <script src="js/paths.js"></script>
   <script src="js/shared.js"></script>
   <script src="js/server-config.js"></script>
   <script src="js/admin-config.js"></script>

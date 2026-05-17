@@ -335,14 +335,14 @@
             kind: "support",
             title: "Сообщение от поддержки",
             body: "Обращение " + ref + ": новый ответ в чате.",
-            link: "support.html",
+            link: "/support",
           });
         } else if (side === "client" && typeof N.enqueueForStaffSupport === "function") {
           N.enqueueForStaffSupport({
             kind: "support",
             title: "Новое сообщение в тикете",
             body: ref + " — ответ клиента.",
-            link: "support.html",
+            link: "/support",
           });
         }
       }

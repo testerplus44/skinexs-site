@@ -22,7 +22,7 @@
   }
 
   function getCallbackUrl() {
-    return absoluteUrl("steam-callback.html");
+    return absoluteUrl("/steam-callback");
   }
 
   /**

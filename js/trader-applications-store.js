@@ -91,7 +91,7 @@
         kind: "trader_apply",
         title: "Заявка на роль трейдера",
         body: (sess.email || "Пользователь") + " — Telegram @" + vt.value,
-        link: "/admin.html?traderApp=" + encodeURIComponent(app.id) + "#traders",
+        link: "/admin?traderApp=" + encodeURIComponent(app.id) + "#traders",
       });
     }
     return { ok: true, application: app };
@@ -165,7 +165,7 @@
             kind: "trader_apply",
             title: "Трейдер: заявка одобрена",
             body: "Вам присвоена роль трейдера. Откройте личный кабинет.",
-            link: "/account.html",
+            link: "/account",
           });
         }
         return { ok: true };
@@ -179,7 +179,7 @@
           kind: "trader_apply",
           title: "Трейдер: по заявке отказано",
           body: "При необходимости уточните данные и подайте заявку снова.",
-          link: "/account.html",
+          link: "/account",
         });
       }
       return Promise.resolve({ ok: true });

@@ -16,7 +16,7 @@
     if (lead) lead.textContent = "Вы уже вошли.";
     setMsg("Перенаправление…", true);
     setTimeout(function () {
-      window.location.href = "index.html";
+      window.location.href = "/";
     }, 400);
     if (form) form.hidden = true;
     return;
@@ -47,7 +47,7 @@
         if (res.ok) {
           setMsg(res.message || "Готово. Сейчас перенаправим на вход…", true);
           setTimeout(function () {
-            window.location.href = "auth.html";
+            window.location.href = "/auth";
           }, 1200);
         } else {
           setMsg(res.message || "Ошибка.", false);

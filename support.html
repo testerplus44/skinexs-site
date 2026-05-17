@@ -1,9 +1,9 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ru">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <link rel="icon" href="assets/brand/favicon.svg" type="image/svg+xml" />
+  <link rel="icon" type="image/png" href="/assets/favicon.png" />
   <meta name="description" content="Поддержка Skinexs — как проходит покупка и полезные подсказки." />
   <title>Поддержка — Skinexs</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -17,14 +17,14 @@
   <header class="site-header">
     <div class="container header-inner">
       <div class="header-left">
-        <a class="logo" href="index.html">
+        <a class="logo" href="/">
           <span class="logo-mark" aria-hidden="true"><img class="logo-mark-img" src="assets/brand/logo-mark.svg" width="40" height="40" alt="" /></span>
           <span class="logo-text">Skinexs</span>
         </a>
         <nav class="nav nav-primary" aria-label="Основное меню">
-          <a href="index.html#catalog">Каталог</a>
-          <a href="support.html" class="nav-active" aria-current="page">Поддержка</a>
-          <a href="reviews.html">Отзывы</a>
+          <a href="/#catalog">Каталог</a>
+          <a href="/support" class="nav-active" aria-current="page">Поддержка</a>
+          <a href="/reviews">Отзывы</a>
         </nav>
       </div>
       <div class="header-actions">
@@ -46,7 +46,7 @@
   <main class="support-main cs-scope">
     <div class="container container-wide">
       <nav class="breadcrumbs product-breadcrumbs" aria-label="Хлебные крошки">
-        <a href="index.html">Главная</a>
+        <a href="/">Главная</a>
         <span class="bc-sep" aria-hidden="true">/</span>
         <span class="bc-current">Поддержка</span>
       </nav>
@@ -86,13 +86,14 @@
       <div class="drawer-body" id="cartItems"></div>
       <div class="drawer-foot">
         <p class="cart-total">Итого: <strong id="cartTotal">0 ₽</strong></p>
-        <a class="btn btn-primary btn-block cart-auth-cta" id="cartLoginCta" href="auth.html" hidden>Авторизоваться для оформления заказа</a>
+        <a class="btn btn-primary btn-block cart-auth-cta" id="cartLoginCta" href="/auth" hidden>Авторизоваться для оформления заказа</a>
         <button type="button" class="btn btn-primary btn-block" id="checkoutOrder" hidden>Оформить заказ</button>
         <p class="cart-checkout-note" id="cartCheckoutNote" role="status" aria-live="polite"></p>
       </div>
     </div>
   </aside>
 
+  <script src="js/paths.js"></script>
   <script src="js/shared.js"></script>
   <script src="js/server-config.js"></script>
   <script src="js/admin-config.js"></script>

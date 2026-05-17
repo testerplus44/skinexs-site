@@ -13,11 +13,13 @@
       return div.innerHTML;
     },
     productUrl(id) {
-      return "product.html?id=" + encodeURIComponent(String(id));
+      if (w.SkinexPaths && w.SkinexPaths.productUrl) return w.SkinexPaths.productUrl(id);
+      return "/product?id=" + encodeURIComponent(String(id));
     },
     indexUrl(hash) {
+      if (w.SkinexPaths && w.SkinexPaths.indexUrl) return w.SkinexPaths.indexUrl(hash);
       const h = hash && String(hash).startsWith("#") ? hash : hash ? "#" + hash : "";
-      return "index.html" + h;
+      return "/" + h;
     },
     rarityLabels: {
       arcana: "Arcana",

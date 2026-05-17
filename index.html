@@ -3,9 +3,9 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <link rel="icon" href="assets/brand/favicon.svg" type="image/svg+xml" />
-  <meta name="description" content="Эксклюзивные сеты Dota 2 — редкие комплекты для коллекционеров и игроков." />
-  <title>Skinexs — эксклюзивные сеты Dota 2</title>
+  <title>Skinexs — Эксклюзивные сеты Dota 2</title>
+  <meta name="description" content="Маркетплейс редких предметов Dota 2" />
+  <link rel="icon" type="image/png" href="/assets/favicon.png" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&family=Montserrat:wght@400;500;600;700&family=Outfit:wght@500;600;700&display=swap" rel="stylesheet" />
@@ -17,14 +17,14 @@
   <header class="site-header">
     <div class="container header-inner">
       <div class="header-left">
-        <a class="logo" href="index.html" aria-label="Skinexs — на главную">
+        <a class="logo" href="/" aria-label="Skinexs — на главную">
           <span class="logo-mark" aria-hidden="true"><img class="logo-mark-img" src="assets/brand/logo-mark.svg" width="40" height="40" alt="" /></span>
           <span class="logo-text">Skinexs</span>
         </a>
         <nav class="nav nav-primary" aria-label="Основное меню">
-          <a href="index.html#catalog">Каталог</a>
-          <a href="support.html">Поддержка</a>
-          <a href="reviews.html">Отзывы</a>
+          <a href="/#catalog">Каталог</a>
+          <a href="/support">Поддержка</a>
+          <a href="/reviews">Отзывы</a>
         </nav>
       </div>
       <div class="header-actions">
@@ -55,7 +55,7 @@
           </p>
           <div class="hero-actions">
             <a class="btn btn-primary" href="#catalog">Смотреть каталог</a>
-            <a class="btn btn-outline" href="reviews.html">Отзывы</a>
+            <a class="btn btn-outline" href="/reviews">Отзывы</a>
           </div>
           <dl class="stats">
             <div><dt>Лоты</dt><dd id="statLots">12+</dd></div>
@@ -90,7 +90,7 @@
 
           <div class="catalog-content catalog-content--v2">
             <nav class="breadcrumbs" aria-label="Хлебные крошки">
-              <a href="index.html">Главная</a>
+              <a href="/">Главная</a>
               <span class="bc-sep" aria-hidden="true">/</span>
               <span class="bc-current">Каталог</span>
             </nav>
@@ -162,11 +162,11 @@
         Торговля предметами осуществляется в рамках пользовательского соглашения Steam.
       </p>
       <p class="footer-legal-links">
-        <a href="legal/terms.html">Пользовательское соглашение</a>
+        <a href="/legal/terms">Пользовательское соглашение</a>
         ·
-        <a href="legal/privacy.html">Конфиденциальность</a>
+        <a href="/legal/privacy">Конфиденциальность</a>
         ·
-        <a href="legal/marketplace.html">Правила маркетплейса</a>
+        <a href="/legal/marketplace">Правила маркетплейса</a>
       </p>
     </div>
   </footer>
@@ -182,7 +182,7 @@
       <div class="drawer-body" id="cartItems"></div>
       <div class="drawer-foot">
         <p class="cart-total">Итого: <strong id="cartTotal">0 ₽</strong></p>
-        <a class="btn btn-primary btn-block cart-auth-cta" id="cartLoginCta" href="auth.html" hidden>Авторизоваться для оформления заказа</a>
+        <a class="btn btn-primary btn-block cart-auth-cta" id="cartLoginCta" href="/auth" hidden>Авторизоваться для оформления заказа</a>
         <button type="button" class="btn btn-primary btn-block" id="checkoutOrder" hidden>Оформить заказ</button>
         <p class="cart-checkout-note" id="cartCheckoutNote" role="status" aria-live="polite"></p>
       </div>
@@ -192,6 +192,7 @@
   <script src="js/data.js"></script>
   <script src="js/catalog-meta.js"></script>
   <script src="js/catalog-meta-store.js"></script>
+  <script src="js/paths.js"></script>
   <script src="js/shared.js"></script>
   <script src="js/server-config.js"></script>
   <script src="js/admin-config.js"></script>

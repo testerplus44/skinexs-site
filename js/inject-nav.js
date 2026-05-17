@@ -1,15 +1,17 @@
 (function () {
-  function currentPage() {
+  var Paths = window.SkinexPaths;
+
+  function currentSlug() {
+    if (Paths && Paths.currentSlug) return Paths.currentSlug();
     var n = location.pathname.split("/").pop();
-    return n && n.endsWith(".html") ? n : "index.html";
+    return n && n.endsWith(".html") ? n.replace(/\.html$/, "") : n || "index";
   }
 
   function loginNextPage() {
-    var p = currentPage();
-    return p === "auth.html" ? "index.html" : p;
+    var slug = currentSlug();
+    return slug === "auth" ? (Paths && Paths.P ? Paths.P.home : "/") : location.pathname + location.search + location.hash;
   }
 
-  /** Ссылка «Личный кабинет» только справа в шапке; старый пункт из nav убираем. */
   function syncCabinetNavLink() {
     var navPrimary = document.querySelector(".nav.nav-primary");
     if (!navPrimary) return;
@@ -17,7 +19,6 @@
     if (existing) existing.remove();
   }
 
-  /** Пункт «Steam» в основной навигации (рядом с Каталог / Поддержка / Отзывы), тот же стиль что и остальные ссылки. */
   function syncSteamTopupNavLink() {
     var legacy = document.querySelector(".header-actions a[data-skinex-steam-topup]");
     if (legacy && legacy.parentNode) legacy.parentNode.removeChild(legacy);
@@ -26,24 +27,24 @@
     var existing = navPrimary.querySelector("a[data-skinex-steam-topup]");
     if (existing) return;
     var a = document.createElement("a");
-    a.href = "steam-topup.html";
+    a.href = Paths && Paths.P ? Paths.P.steamTopup : "/steam-topup";
     a.setAttribute("data-skinex-steam-topup", "1");
     a.textContent = "Пополнение Steam";
     a.setAttribute("aria-label", "Пополнение кошелька Steam");
-    if (currentPage() === "steam-topup.html") {
+    if (currentSlug() === "steam-topup") {
       a.setAttribute("aria-current", "page");
       a.classList.add("nav-active");
     }
     navPrimary.appendChild(a);
   }
 
-  /** Подсветка «Каталог» на главной и карточке товара (остальные страницы — из разметки или Steam). */
   function syncCatalogNavActive() {
-    var p = currentPage();
-    if (p !== "index.html" && p !== "product.html") return;
+    var slug = currentSlug();
+    if (slug !== "index" && slug !== "product") return;
     var nav = document.querySelector(".site-header .nav.nav-primary");
     if (!nav) return;
-    var cat = nav.querySelector('a[href="index.html#catalog"]');
+    var catHref = Paths && Paths.catalogHref ? Paths.catalogHref : "/#catalog";
+    var cat = nav.querySelector('a[href="' + catHref + '"]') || nav.querySelector('a[href*="catalog"]');
     if (!cat) return;
     nav.querySelectorAll("a").forEach(function (el) {
       el.classList.remove("nav-active");
@@ -76,83 +77,74 @@
     if (isAd && cart && cart.parentNode) {
       var am = document.createElement("a");
       am.id = "skinexHeaderAdminAsCart";
-      am.href = "admin.html";
+      am.href = Paths && Paths.P ? Paths.P.admin : "/admin";
       am.className = "btn btn-ghost cart-toggle nav-admin-link";
       am.textContent = "Админка";
-      am.setAttribute("aria-label", "Панель администратора");
-      if (currentPage() === "admin.html") am.setAttribute("aria-current", "page");
-      cart.parentNode.insertBefore(am, cart.nextSibling);
+      am.setAttribute("aria-label", "Админ-панель");
+      if (currentSlug() === "admin") am.setAttribute("aria-current", "page");
+      cart.parentNode.insertBefore(am, cart);
     }
   }
 
-  function run() {
+  function syncHeaderAuthSlot() {
     var Auth = window.SkinexAuth;
-    var userSlot = document.getElementById("userNavSlot");
-    if (userSlot && Auth) {
-      userSlot.innerHTML = "";
-      var s = Auth.getSession();
-      if (s && Auth.isLoggedIn && Auth.isLoggedIn()) {
-        var cluster = document.createElement("div");
-        cluster.className = "header-user-cluster";
-        var isAdmin = Auth.isAdmin && Auth.isAdmin();
-        if (currentPage() !== "account.html" && !isAdmin) {
-          var cab = document.createElement("a");
-          cab.href = "account.html";
-          cab.className = "nav-user-cabinet";
-          cab.textContent = "Личный кабинет";
-          cab.setAttribute("aria-label", "Личный кабинет");
-          cluster.appendChild(cab);
-        }
-        var out = document.createElement("button");
-        out.type = "button";
-        out.className = "btn btn-ghost nav-user-out";
-        out.textContent = "Выйти";
-        out.addEventListener("click", function () {
-          Auth.logout();
-          location.reload();
-        });
-        cluster.appendChild(out);
-        userSlot.appendChild(cluster);
-      } else {
-        var login = document.createElement("a");
-        login.href = "auth.html?next=" + encodeURIComponent(loginNextPage());
-        login.className = "nav-user-login";
-        login.textContent = "Войти";
-        userSlot.appendChild(login);
+    var slot = document.querySelector(".header-auth-slot");
+    if (!slot || !Auth) return;
+    slot.innerHTML = "";
+    if (Auth.isLoggedIn && Auth.isLoggedIn()) {
+      var isAdmin = Auth.isAdmin && Auth.isAdmin();
+      var cab = document.createElement("a");
+      cab.className = "nav-user-cabinet";
+      cab.href = Paths && Paths.P ? Paths.P.account : "/account";
+      cab.textContent = "Личный кабинет";
+      if (currentSlug() === "account" && !isAdmin) {
+        cab.setAttribute("aria-current", "page");
       }
+      slot.appendChild(cab);
+      var out = document.createElement("button");
+      out.type = "button";
+      out.className = "nav-user-out btn btn-ghost";
+      out.textContent = "Выйти";
+      out.addEventListener("click", function () {
+        Auth.logout();
+        window.location.reload();
+      });
+      slot.appendChild(out);
+    } else {
+      var login = document.createElement("a");
+      login.className = "nav-user-login btn btn-outline";
+      login.href =
+        (Paths && Paths.P ? Paths.P.auth : "/auth") +
+        "?next=" +
+        encodeURIComponent(loginNextPage());
+      login.textContent = "Войти";
+      slot.appendChild(login);
     }
+  }
+
+  function init() {
     syncCabinetNavLink();
     syncSteamTopupNavLink();
     syncCatalogNavActive();
     syncCartAndAdminHeader();
-
-    var adminSlot = document.getElementById("adminNavSlot");
-    if (adminSlot) {
-      adminSlot.innerHTML = "";
-    }
-    if (window.SkinexNotificationsUI && typeof window.SkinexNotificationsUI.tryMount === "function") {
-      window.SkinexNotificationsUI.tryMount();
-    }
+    syncHeaderAuthSlot();
   }
 
-  function start() {
-    var Auth = window.SkinexAuth;
-    if (window.SKINEX_USE_SERVER_API && Auth && typeof Auth.hydrateFromServer === "function") {
-      Auth.hydrateFromServer().finally(function () {
-        run();
-      });
-      return;
-    }
-    run();
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", init);
+  } else {
+    init();
   }
 
-  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", start);
-  else start();
+  window.addEventListener("storage", function (e) {
+    if (e.key === "skinex_session_v1") syncHeaderAuthSlot();
+  });
 
-  window.SkinexNavRefresh = function () {
-    var Auth = window.SkinexAuth;
-    if (window.SKINEX_USE_SERVER_API && Auth && typeof Auth.hydrateFromServer === "function") {
-      Auth.hydrateFromServer().finally(run);
-    } else run();
-  };
+  var Auth = window.SkinexAuth;
+  if (window.SKINEX_USE_SERVER_API && Auth && typeof Auth.hydrateFromServer === "function") {
+    Auth.hydrateFromServer().then(function () {
+      syncHeaderAuthSlot();
+      syncCartAndAdminHeader();
+    });
+  }
 })();

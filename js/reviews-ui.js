@@ -182,8 +182,8 @@
       mountForm.hidden = false;
       mountForm.className = "reviews-compose-inner reviews-form-mount--hint";
       mountForm.innerHTML =
-        '<p class="reviews-form-hint">Чтобы оставить отзыв, <a href="auth.html?next=' +
-        encodeURIComponent("reviews.html") +
+        '<p class="reviews-form-hint">Чтобы оставить отзыв, <a href="/auth?next=' +
+        encodeURIComponent("/reviews") +
         '">войдите</a> и завершите заказ (подтвердите получение в личном кабинете).</p>';
       return;
     }

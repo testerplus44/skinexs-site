@@ -160,6 +160,43 @@ app.get("/collections", (req, res) => {
   }
 });
 
+/** Чистые URL без .html */
+const CLEAN_PAGE_ROUTES = [
+  ["/", "index.html"],
+  ["/support", "support.html"],
+  ["/reviews", "reviews.html"],
+  ["/steam-topup", "steam-topup.html"],
+  ["/auth", "auth.html"],
+  ["/account", "account.html"],
+  ["/admin", "admin.html"],
+  ["/product", "product.html"],
+  ["/forgot-password", "forgot-password.html"],
+  ["/reset-password", "reset-password.html"],
+  ["/steam-callback", "steam-callback.html"],
+  ["/legal/terms", "legal/terms.html"],
+  ["/legal/privacy", "legal/privacy.html"],
+  ["/legal/marketplace", "legal/marketplace.html"],
+];
+
+app.get(/\.html$/i, (req, res, next) => {
+  const p = req.path;
+  if (!p.endsWith(".html")) return next();
+  const q = req.url.includes("?") ? req.url.slice(req.url.indexOf("?")) : "";
+  if (p === "/index.html") return res.redirect(301, "/" + q);
+  const clean = p.replace(/\.html$/i, "");
+  return res.redirect(301, clean + q);
+});
+
+for (const [route, file] of CLEAN_PAGE_ROUTES) {
+  app.get(route, (req, res, next) => {
+    const filePath = path.join(ROOT, file);
+    if (!fs.existsSync(filePath)) return next();
+    res.sendFile(filePath, (err) => {
+      if (err) next(err);
+    });
+  });
+}
+
 app.get("/listings", (req, res) => {
   try {
     let list = loadCatalogMerged();

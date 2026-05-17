@@ -1,11 +1,11 @@
 (function () {
   var Auth = window.SkinexAuth;
   if (Auth && Auth.isAdmin()) {
-    window.location.replace("admin.html");
+    window.location.replace("/admin");
     return;
   }
   if (!Auth || !Auth.isClient()) {
-    window.location.replace("auth.html?next=" + encodeURIComponent("account.html"));
+    window.location.replace("/auth?next=" + encodeURIComponent("/account"));
     return;
   }
 
@@ -527,7 +527,7 @@
         ? active.map(function (o) {
             return orderCard(o, true);
           }).join("")
-        : "<p class=\"account-empty\">Нет активных заказов. <a href=\"index.html#catalog\">В каталог</a></p>";
+        : "<p class=\"account-empty\">Нет активных заказов. <a href=\"/#catalog\">В каталог</a></p>";
     }
     if (ordersDone) {
       var cancelled = all.filter(function (o) {
@@ -875,7 +875,7 @@
             kind: "balance",
             title: "Баланс пополнен",
             body: "Зачислено " + formatPrice(r.added) + ".",
-            link: "account.html",
+            link: "/account",
           });
           if (window.SkinexNotificationsUI && typeof window.SkinexNotificationsUI.tryMount === "function") {
             window.SkinexNotificationsUI.tryMount();

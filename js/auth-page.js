@@ -14,15 +14,15 @@
 
   function nextUrl() {
     var p = new URLSearchParams(window.location.search).get("next");
-    if (p && /^[a-zA-Z0-9._-]+\.html(#?[a-zA-Z0-9._-]*)?$/.test(p)) return p;
-    if (p && p.startsWith("/")) return p.replace(/^\//, "") || "index.html";
-    return "index.html";
+    if (window.SkinexPaths && window.SkinexPaths.normalizeHref) return window.SkinexPaths.normalizeHref(p);
+    if (p && p.startsWith("/")) return p;
+    return "/";
   }
 
   /** Личный кабинет только для role=user; иначе цикл auth ↔ account для админа. */
   function postLoginTarget(role) {
     var t = nextUrl();
-    if (role === "admin" && t === "account.html") return "admin.html";
+    if (role === "admin" && t === "/account") return "/admin";
     return t;
   }
 

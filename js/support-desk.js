@@ -110,8 +110,8 @@
         '<div class="support-desk-card">' +
         "<h2>Обращения в поддержку</h2>" +
         '<p class="support-muted">Чтобы написать в поддержку и видеть историю обращений, войдите в аккаунт.</p>' +
-        '<a class="btn btn-outline" href="auth.html?next=' +
-        encodeURIComponent("support.html") +
+        '<a class="btn btn-outline" href="/auth?next=' +
+        encodeURIComponent("/support") +
         '">Войти</a>' +
         "</div>";
       return;

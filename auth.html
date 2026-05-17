@@ -1,9 +1,9 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ru">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <link rel="icon" href="assets/brand/favicon.svg" type="image/svg+xml" />
+  <link rel="icon" type="image/png" href="/assets/favicon.png" />
   <meta name="robots" content="noindex, nofollow" />
   <title>Вход и регистрация — Skinexs</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -17,14 +17,14 @@
   <header class="site-header">
     <div class="container header-inner">
       <div class="header-left">
-        <a class="logo" href="index.html">
+        <a class="logo" href="/">
           <span class="logo-mark" aria-hidden="true"><img class="logo-mark-img" src="assets/brand/logo-mark.svg" width="40" height="40" alt="" /></span>
           <span class="logo-text">Skinexs</span>
         </a>
         <nav class="nav nav-primary" aria-label="Основное меню">
-          <a href="index.html#catalog">Каталог</a>
-          <a href="support.html">Поддержка</a>
-          <a href="reviews.html">Отзывы</a>
+          <a href="/#catalog">Каталог</a>
+          <a href="/support">Поддержка</a>
+          <a href="/reviews">Отзывы</a>
         </nav>
       </div>
       <div class="header-actions">
@@ -63,7 +63,7 @@
               <span>Пароль</span>
               <input type="password" name="password" required autocomplete="current-password" />
             </label>
-            <p class="auth-forgot-wrap"><a href="forgot-password.html" class="auth-forgot-link">Забыли пароль?</a></p>
+            <p class="auth-forgot-wrap"><a href="/forgot-password" class="auth-forgot-link">Забыли пароль?</a></p>
             <button type="submit" class="btn-cs-cart btn-block auth-submit">Войти</button>
             <div class="auth-steam-wrap">
               <span class="auth-steam-sep">или</span>
@@ -120,13 +120,14 @@
       <div class="drawer-body" id="cartItems"></div>
       <div class="drawer-foot">
         <p class="cart-total">Итого: <strong id="cartTotal">0 ₽</strong></p>
-        <a class="btn btn-primary btn-block cart-auth-cta" id="cartLoginCta" href="auth.html" hidden>Авторизоваться для оформления заказа</a>
+        <a class="btn btn-primary btn-block cart-auth-cta" id="cartLoginCta" href="/auth" hidden>Авторизоваться для оформления заказа</a>
         <button type="button" class="btn btn-primary btn-block" id="checkoutOrder" hidden>Оформить заказ</button>
         <p class="cart-checkout-note" id="cartCheckoutNote" role="status" aria-live="polite"></p>
       </div>
     </div>
   </aside>
 
+  <script src="js/paths.js"></script>
   <script src="js/shared.js"></script>
   <script src="js/data.js"></script>
   <script src="js/server-config.js"></script>

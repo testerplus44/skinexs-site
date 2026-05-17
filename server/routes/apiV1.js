@@ -155,7 +155,7 @@ function finalizeTopupFromPayment(db, payment) {
       kind: "balance",
       title: "Баланс пополнен",
       body: `Зачислено ${amountRub} ₽.`,
-      link: "/account.html",
+      link: "/account",
     });
   } catch (e) {
     console.error("[notifyInApp topup]", e.message || e);
@@ -223,7 +223,7 @@ function finalizeSteamKeysOrderFromPayment(db, payment) {
         kind: "steam_keys",
         title: "Оплата ключей принята",
         body: `Заказ ${row.key_count} шт. Отправка по трейд-ссылке обрабатывается.`,
-        link: "/steam-topup.html",
+        link: "/steam-topup",
       });
     } catch (e) {
       console.error("[notifyInApp steam keys]", e.message || e);
@@ -305,7 +305,7 @@ router.post("/auth/register", (req, res) => {
       kind: "welcome",
       title: "Добро пожаловать в Skinexs",
       body: "Аккаунт создан. Пополните баланс в личном кабинете, чтобы оформлять заказы.",
-      link: "/account.html",
+      link: "/account",
     });
   } catch (e) {
     console.error("[notifyInApp register]", e.message || e);
@@ -380,7 +380,7 @@ router.post("/auth/forgot-password", (req, res) => {
     "INSERT INTO password_reset_tokens (id, user_id, token_hash, expires_at, created_at) VALUES (?, ?, ?, ?, ?)",
   ).run(prId, row.id, tokenHash, expiresAt, now);
   const origin = publicOrigin(req);
-  const link = `${origin}/reset-password.html?token=${encodeURIComponent(rawToken)}`;
+  const link = `${origin}/reset-password?token=${encodeURIComponent(rawToken)}`;
   const text =
     "Здравствуйте.\n\nЧтобы задать новый пароль для аккаунта Skinexs, перейдите по ссылке (действует 1 час):\n\n" +
     link +
@@ -459,7 +459,7 @@ router.post("/auth/steam/session", async (req, res) => {
           kind: "welcome",
           title: "Аккаунт Steam подключён",
           body: "Добро пожаловать! Пополните баланс в личном кабинете для покупок.",
-          link: "/account.html",
+          link: "/account",
         });
       } catch (e) {
         console.error("[notifyInApp steam]", e.message || e);
@@ -716,7 +716,7 @@ router.post("/orders/checkout", requireAuth, (req, res) => {
       kind: "order",
       title: `Заказ №${nextNum} принят`,
       body: `Сумма ${total} ₽. Статус можно отслеживать в личном кабинете.`,
-      link: "/account.html",
+      link: "/account",
     });
   } catch (e) {
     console.error("[notifyInApp order]", e.message || e);
@@ -763,7 +763,7 @@ router.post("/orders/:dealId/advance", requireTrader, (req, res) => {
       kind: "order",
       title: `Заказ №${out.orderNumber != null ? out.orderNumber : dealId}`,
       body: `Статус сделки: ${next}.`,
-      link: "/account.html",
+      link: "/account",
     });
   } catch (e) {
     console.error("[notifyInApp order advance]", e.message || e);
@@ -812,7 +812,7 @@ router.post("/orders/:dealId/complete", requireAuth, (req, res) => {
           kind: "order",
           title: `Заказ №${out.orderNumber != null ? out.orderNumber : dealId} завершён`,
           body: "Покупатель подтвердил получение.",
-          link: "/account.html",
+          link: "/account",
         });
       }
     }
@@ -820,7 +820,7 @@ router.post("/orders/:dealId/complete", requireAuth, (req, res) => {
       kind: "order",
       title: `Заказ №${out.orderNumber != null ? out.orderNumber : dealId} завершён`,
       body: "Сделка закрыта.",
-      link: "/account.html",
+      link: "/account",
     });
   } catch (e) {
     console.error("[notifyInApp order complete]", e.message || e);
@@ -894,13 +894,13 @@ router.post("/tickets", requireAuth, (req, res) => {
       kind: "ticket",
       title: "Обращение зарегистрировано",
       body: `Тикет №${ticketNo}. Ответ придёт на email или смотрите раздел «Поддержка».`,
-      link: "/support.html",
+      link: "/support",
     });
     notifyStaffInApp({
       kind: "ticket",
       title: "Новое обращение в поддержку",
       body: `№${ticketNo} от ${req.session.email}`,
-      link: "/admin.html",
+      link: "/admin",
     });
   } catch (e) {
     console.error("[notifyInApp ticket]", e.message || e);
@@ -950,7 +950,7 @@ router.post("/tickets/:id/messages", requireAuth, (req, res) => {
           kind: "support",
           title: "Сообщение от поддержки",
           body: `Тикет №${ticketNo}. Откройте раздел «Поддержка».`,
-          link: "/support.html",
+          link: "/support",
         });
       }
     } else {
@@ -958,7 +958,7 @@ router.post("/tickets/:id/messages", requireAuth, (req, res) => {
         kind: "support",
         title: "Новое сообщение в тикете",
         body: `№${ticketNo} от ${req.session.email}`,
-        link: "/admin.html",
+        link: "/admin",
       });
     }
   } catch (e) {
@@ -987,14 +987,14 @@ router.post("/disputes", requireAuth, (req, res) => {
       kind: "dispute",
       title: "Спор зарегистрирован",
       body: `По заказу ${orderId}. Поддержка рассмотрит обращение.`,
-      link: "/account.html",
+      link: "/account",
     });
     const noteShort = notes.length > 180 ? `${notes.slice(0, 177)}…` : notes;
     notifyStaffInApp({
       kind: "dispute",
       title: "Открыт спор по заказу",
       body: `Заказ ${orderId}. ${noteShort}`,
-      link: "/admin.html",
+      link: "/admin",
     });
   } catch (e) {
     console.error("[notifyInApp dispute]", e.message || e);
@@ -1090,7 +1090,7 @@ router.post("/trader-applications", requireAuth, (req, res) => {
       kind: "trader_apply",
       title: "Заявка на роль трейдера",
       body: `${normEmail(req.session.email) || "—"} — Telegram @${tg.value}`,
-      link: `/admin.html?traderApp=${encodeURIComponent(id)}#traders`,
+      link: `/admin?traderApp=${encodeURIComponent(id)}#traders`,
     });
   } catch (e) {
     console.error("[trader_application notify]", e.message || e);
@@ -1151,7 +1151,7 @@ router.post("/admin/trader-applications/:id/approve", requireAdmin, (req, res) =
       kind: "trader_apply",
       title: "Заявка одобрена",
       body: "Вам присвоена роль трейдера. Обновите страницу кабинета, чтобы увидеть раздел исполнения.",
-      link: "/account.html",
+      link: "/account",
     });
   } catch (e) {
     console.error("[trader_application approve notify]", e.message || e);
@@ -1175,7 +1175,7 @@ router.post("/admin/trader-applications/:id/reject", requireAdmin, (req, res) =>
       kind: "trader_apply",
       title: "По заявке в трейдеры отказано",
       body: "При необходимости уточните данные и подайте заявку снова.",
-      link: "/account.html",
+      link: "/account",
     });
   } catch (e) {
     console.error("[trader_application reject notify]", e.message || e);
@@ -1342,7 +1342,7 @@ router.post("/payments/yookassa/topup", requireAuth, async (req, res) => {
   }
   const db = getDb();
   const topupId = uid("tup_");
-  const returnUrl = `${publicOrigin(req)}/account.html?topup=${encodeURIComponent(topupId)}`;
+  const returnUrl = `${publicOrigin(req)}/account?topup=${encodeURIComponent(topupId)}`;
 
   db.prepare(
     "INSERT INTO balance_topups (id, user_id, amount_rub, status, created_at, updated_at) VALUES (?, ?, ?, 'pending', ?, ?)",
@@ -1478,7 +1478,7 @@ router.post("/payments/yookassa/steam-keys/create", async (req, res) => {
 
   const db = getDb();
   const orderId = uid("stk_");
-  const returnUrl = `${publicOrigin(req)}/steam-topup.html?steam_keys_order=${encodeURIComponent(orderId)}`;
+  const returnUrl = `${publicOrigin(req)}/steam-topup?steam_keys_order=${encodeURIComponent(orderId)}`;
   const now = Date.now();
 
   db.prepare(

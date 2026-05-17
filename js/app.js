@@ -51,7 +51,7 @@
   }
 
   function productUrl(id) {
-    return U ? U.productUrl(id) : "product.html?id=" + encodeURIComponent(String(id));
+    return U ? U.productUrl(id) : "/product?id=" + encodeURIComponent(String(id));
   }
 
   function getCatalogList() {
@@ -71,10 +71,10 @@
   }
 
   function cartAuthReturnUrl() {
-    const n = location.pathname.split("/").pop();
-    const page = n && n.endsWith(".html") ? n : "index.html";
-    if (page === "index.html") return "index.html#catalog";
-    return page;
+    const path = location.pathname || "/";
+    const tail = location.search + location.hash;
+    if (path === "/" || path === "/index") return "/#catalog";
+    return path + tail;
   }
 
   function cartHasCheckoutLines() {
@@ -101,7 +101,7 @@
       cartLoginCta.hidden = !showLoginCta;
       if (showLoginCta) {
         cartLoginCta.removeAttribute("aria-hidden");
-        cartLoginCta.href = "auth.html?next=" + encodeURIComponent(cartAuthReturnUrl());
+        cartLoginCta.href = "/auth?next=" + encodeURIComponent(cartAuthReturnUrl());
       } else {
         cartLoginCta.setAttribute("aria-hidden", "true");
       }
@@ -763,7 +763,7 @@
           kind: "order",
           title: "Заказ № " + num + " создан",
           body: "Откройте личный кабинет, чтобы отслеживать статус.",
-          link: "account.html",
+          link: "/account",
         });
         if (window.SkinexNotificationsUI && typeof window.SkinexNotificationsUI.tryMount === "function") {
           window.SkinexNotificationsUI.tryMount();

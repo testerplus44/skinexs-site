@@ -186,7 +186,7 @@
     var num = order.orderNumber != null ? order.orderNumber : String(order.id || "").slice(0, 10);
     var title = "Заказ № " + num;
     var body = "Статус сделки: " + label + ".";
-    var link = "account.html";
+    var link = "/account";
     var buyer = normEmailAcc(order.buyerEmail);
     if (buyer) {
       N.enqueueForRecipientEmail(buyer, { kind: "order", title: title, body: body, link: link });
