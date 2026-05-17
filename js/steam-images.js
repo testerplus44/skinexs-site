@@ -43,10 +43,22 @@
     return String(item.icon_url_large || item.iconUrlLarge || "").trim();
   }
 
+  /** Превью для страницы товара — без квадратного кадра (типичное 330×192). */
+  function getSteamImageUrlProduct(iconUrl) {
+    return getSteamImageUrl(iconUrl, "330x192");
+  }
+
   function resolveItemImageUrl(item) {
     if (!item) return "";
     var steam = getSteamImageUrl(getItemIconHash(item));
     if (steam) return steam;
+    return validHttpUrl(item.imageUrl || "");
+  }
+
+  function resolveItemImageUrlProduct(item) {
+    if (!item) return "";
+    var hash = getItemIconHash(item);
+    if (hash) return getSteamImageUrlProduct(hash);
     return validHttpUrl(item.imageUrl || "");
   }
 
@@ -94,8 +106,10 @@
   w.SkinexSteamImages = {
     STEAM_ECONOMY_BASE: STEAM_ECONOMY_BASE,
     getSteamImageUrl: getSteamImageUrl,
+    getSteamImageUrlProduct: getSteamImageUrlProduct,
     getItemIconHash: getItemIconHash,
     resolveItemImageUrl: resolveItemImageUrl,
+    resolveItemImageUrlProduct: resolveItemImageUrlProduct,
     hasItemImage: hasItemImage,
     isSteamCdnImage: isSteamCdnImage,
     rarityMediaClass: rarityMediaClass,

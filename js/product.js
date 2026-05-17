@@ -336,7 +336,13 @@
     if (bcTitle) bcTitle.textContent = item.name;
 
     const SI = window.SkinexSteamImages;
-    const imgHref = SI ? SI.resolveItemImageUrl(item) : U.validHttpUrl ? U.validHttpUrl(item.imageUrl || "") : "";
+    const imgHref = SI
+      ? SI.resolveItemImageUrlProduct
+        ? SI.resolveItemImageUrlProduct(item)
+        : SI.resolveItemImageUrl(item)
+      : U.validHttpUrl
+        ? U.validHttpUrl(item.imageUrl || "")
+        : "";
     const isSteam = SI && SI.isSteamCdnImage(item);
     const mediaCls =
       "product-media" +
